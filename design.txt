@@ -1,0 +1,49 @@
+SpaceDef and ValueDef for defining the space of actions and observations.
+
+Agent:
+	C++ side of things.
+	Must be capable of starting an instance of the Godot game engine programmatically.
+	Start communication with the environment, throw exception if something fails.
+	This is the easier to implement part of the library.
+
+Environment:
+	This will be an instance of the Godot game engine with the RuntimeNode inside it for communication purposes.
+	A specific environment will have to be installed onto the computer prior to usage.
+	Then the environment must be either registered for use, or be capable of being found in some way.
+
+	Must initialize the observation space and the action space.
+	Those can be a dictionary of values.
+
+	Every step of the scene must enact the action given by the agent,
+	then calculate the reward, the observation, and determine if the end condition has been met.
+
+
+The communication protocol:
+	Step by step:
+		agent starts the executable
+		environment connects, acknowledge connection
+		environment sends the definitions for action and observation space
+		
+		agent sends reset command, environment returns the initial step
+		agent sends step command + action data, environment returns step data
+
+		agent sends close command, executable closes.
+
+	Serialization:
+		No need to worry about endianess for now, this is essentially ipc.
+		Exceptional circumstances need a way to be handled, the agent or the environment could encounter some kind of issue.
+
+		requests:
+			observation_space -> no data in request, reply with observation space definition
+			action_space -> no data in request, reply with action space definition
+			reset -> no data in request, reply with initial step data
+			step -> request contains action data, reply with step data
+			close -> no data on either side, connection will be closed
+
+Todo:
+	Provide a way to serialize and deserialize Step, SpaceDef, Space, ValueDef, Value.
+	Test the zeromq connection with some arbitrary data.
+	Implement the Environment class, give it a MessageContext.
+	Implement the RuntimeNode class, give it a MessageContext.
+	Test running a Godot instance programmatically.
+	Design an interface for the Godot side of things, allow the environment to setup SpaceDef from GDScript.
