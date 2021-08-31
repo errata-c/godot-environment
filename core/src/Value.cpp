@@ -8,28 +8,45 @@ namespace gdev {
 	using iterator = Value::iterator;
 	using const_iterator = Value::const_iterator;
 
-	Value Value::MakeBinary(bool val, int x, int y, int z, int w) {
-		if ((x < 1) || (y < 1) || (z < 1) || (w < 1)) {
+	Value Value::MakeBool(bool val, dim_t dims) {
+		if ((dims[0] < 1) || (dims[1] < 1) || (dims[2] < 1) || (dims[3] < 1)) {
 			throw std::logic_error("Invalid dimension for Value type!");
 		}
-		
-		return Value(Type::Bool, dim_t{x, y, z, w}, val);
+
+		return Value(Type::Bool, dims, val);
+	}
+	Value Value::MakeReal(double val, dim_t dims) {
+		if ((dims[0] < 1) || (dims[1] < 1) || (dims[2] < 1) || (dims[3] < 1)) {
+			throw std::logic_error("Invalid dimension for Value type!");
+		}
+
+		return Value(Type::Real, dims, val);
+	}
+	Value Value::MakeInt(int val, dim_t dims) {
+		if ((dims[0] < 1) || (dims[1] < 1) || (dims[2] < 1) || (dims[3] < 1)) {
+			throw std::logic_error("Invalid dimension for Value type!");
+		}
+
+		return Value(Type::Int, dims, val);
+	}
+
+	Value Value::MakeBool(bool val, int x, int y, int z, int w) {
+		return MakeBool(val, dim_t{x, y, z, w});
 	}
 	Value Value::MakeReal(double val, int x, int y, int z, int w) {
-		if ((x < 1) || (y < 1) || (z < 1) || (w < 1)) {
-			throw std::logic_error("Invalid dimension for Value type!");
-		}
-
-		return Value(Type::Real, dim_t{x, y, z, w}, val);
+		return MakeReal(val, dim_t{ x, y, z, w });
 	}
-	Value Value::MakeCategorical(int val, int x, int y, int z, int w) {
-		if ((x < 1) || (y < 1) || (z < 1) || (w < 1)) {
-			throw std::logic_error("Invalid dimension for Value type!");
-		}
-
-		return Value(Type::Int, dim_t{x, y, z, w}, val);
+	Value Value::MakeInt(int val, int x, int y, int z, int w) {
+		return MakeInt(val, dim_t{ x, y, z, w });
 	}
 
+	Value::Value() noexcept
+		: mtype(Type::Real)
+		, mdims{ 1,1,1,1 }
+		, data(&real)
+	{
+		real = 0.0;
+	}
 	Value::Value(bool val) noexcept
 		: Value(Type::Bool, {1,1,1,1}, val)
 	{}
@@ -39,6 +56,54 @@ namespace gdev {
 	Value::Value(double val) noexcept 
 		: Value(Type::Real, { 1,1,1,1 }, val)
 	{}
+	
+	Value::Value(Type _type, dim_t _dims, bool val)
+		: mtype(_type)
+		, mdims{ _dims }
+		, data(nullptr)
+	{
+		std::memset(buffer, 0, sizeof(buffer));
+		binary = val;
+
+		if (size() == 1) {
+			data = &binary;
+		}
+		else {
+			data = calloc(size(), sizeof(bool));
+			std::fill((bool*)begin(), (bool*)end(), val);
+		}
+	}
+	Value::Value(Type _type, dim_t _dims, int val)
+		: mtype(_type)
+		, mdims{ _dims }
+		, data(nullptr)
+	{
+		std::memset(buffer, 0, sizeof(buffer));
+		category = val;
+
+		if (size() == 1) {
+			data = &category;
+		}
+		else {
+			data = calloc(size(), sizeof(int));
+			std::fill((int*)begin(), (int*)end(), val);
+		}
+	}
+	Value::Value(Type _type, dim_t _dims, double val)
+		: mtype(_type)
+		, mdims{ _dims }
+		, data(nullptr)
+	{
+		real = val;
+
+		if (size() == 1) {
+			data = &real;
+		}
+		else {
+			data = calloc(size(), sizeof(double));
+			std::fill((double*)begin(), (double*)end(), val);
+		}
+	}
 
 	Value::Value(const Value& other)
 		: mtype(other.type())
@@ -90,54 +155,13 @@ namespace gdev {
 		return *this;
 	}
 	Value::~Value() {
-		if (size() > 1) {
+		if (size() != 1) {
 			free(data);
 			data = nullptr;
 		}
 	}
 
-	Value::Value() noexcept
-		: mtype(Type::Real)
-		, mdims{1,1,1,1}
-		, data(&real)
-	{
-		real = 0.0;
-	}
-	Value::Value(Type _type, dim_t _dims, bool val)
-		: mtype(_type)
-		, mdims{ _dims }
-		, data(&binary)
-	{
-		std::memset(buffer, 0, sizeof(buffer));
-		binary = val;
-		
-		if (size() > 1) {
-			std::fill((bool *)begin(), (bool *)end(), val);
-		}
-	}
-	Value::Value(Type _type, dim_t _dims, int val)
-		: mtype(_type)
-		, mdims{ _dims }
-		, data(&category)
-	{
-		std::memset(buffer, 0, sizeof(buffer));
-		category = val;
-
-		if (size() > 1) {
-			std::fill((int*)begin(), (int*)end(), val);
-		}
-	}
-	Value::Value(Type _type, dim_t _dims, double val)
-		: mtype(_type)
-		, mdims{ _dims }
-		, data(&real)
-	{
-		real = val;
-
-		if (size() > 1) {
-			std::fill((double*)begin(), (double*)end(), val);
-		}
-	}
+	
 
 
 	bool& Value::asBool() {

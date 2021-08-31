@@ -116,7 +116,7 @@ namespace gdev {
 
 		switch (type) {
 		case ValueType::Bool: {
-			value = Value::MakeBinary(false, dims[0], dims[1], dims[2], dims[3]);
+			value = Value::MakeBool(false, dims[0], dims[1], dims[2], dims[3]);
 
 			auto it = (bool*)value.begin();
 			auto last = (bool*)value.end();
@@ -129,7 +129,7 @@ namespace gdev {
 			break;
 		}
 		case ValueType::Int: {
-			value = Value::MakeCategorical(0, dims[0], dims[1], dims[2], dims[3]);
+			value = Value::MakeInt(0, dims[0], dims[1], dims[2], dims[3]);
 
 			auto it = (int*)value.begin();
 			auto last = (int*)value.end();
@@ -169,14 +169,14 @@ namespace gdev {
 
 		switch (type) {
 		case ValueType::Bool:
-			value = ValueDef::MakeBinary(dims);
+			value = ValueDef::MakeBool(dims);
 			break;
 		case ValueType::Int: {
 			int32_t low, high;
 			buffer = ez::deserialize::i32(buffer, end, low);
 			buffer = ez::deserialize::i32(buffer, end, high);
 
-			value = ValueDef::MakeCategorical(dims, low, high);
+			value = ValueDef::MakeInt(dims, low, high);
 			break;
 		}
 		case ValueType::Real: {

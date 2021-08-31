@@ -13,9 +13,9 @@ TEST_CASE("SpaceDef initialization", "[space]") {
 	REQUIRE(space.size() == 0);
 	REQUIRE(space.empty());
 
-	space.insert("one", ValueDef::MakeBinary({1,1,1,1}));
+	space.insert("one", ValueDef::MakeBool({1,1,1,1}));
 	space.insert("two", ValueDef::MakeReal({1,1,1,1}));
-	space.insert("three", ValueDef::MakeCategorical({1,1,1,1}));
+	space.insert("three", ValueDef::MakeInt({1,1,1,1}));
 
 	REQUIRE(space.size() == 3);
 	REQUIRE(space.contains("one"));

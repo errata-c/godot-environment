@@ -4,7 +4,7 @@
 #include <algorithm>
 
 namespace gdev {
-	ValueDef ValueDef::MakeBinary(dim_t dims) {
+	ValueDef ValueDef::MakeBool(dim_t dims) {
 		if ((dims[0] < 1) || (dims[1] < 1) || (dims[2] < 1) || (dims[3] < 1)) {
 			throw std::logic_error("Invalid dimensions for ValueDef!");
 		}
@@ -20,7 +20,7 @@ namespace gdev {
 		return ValueDef(ValueType::Real, dims, low, high);
 	}
 
-	ValueDef ValueDef::MakeCategorical(dim_t dims, int low, int high) {
+	ValueDef ValueDef::MakeInt(dim_t dims, int low, int high) {
 		if ((dims[0] < 1) || (dims[1] < 1) || (dims[2] < 1) || (dims[3] < 1)) {
 			throw std::logic_error("Invalid dimensions for ValueDef!");
 		}
@@ -80,18 +80,28 @@ namespace gdev {
 		
 		switch (val.type()) {
 		case ValueType::Bool: {
-			
-			break;
+			return true;
 		}
 		case ValueType::Int: {
-
-			break;
+			auto it = (const int*)val.begin();
+			auto last = (const int*)val.end();
+			for (; it != last; ++it) {
+				if (*it < low || *it > high) {
+					return false;
+				}
+			}
+			return true;
 		}
 		case ValueType::Real: {
-
-			break;
-		}
-		}
+			auto it = (const double*)val.begin();
+			auto last = (const double*)val.end();
+			for (; it != last; ++it) {
+				if (*it < low || *it > high) {
+					return false;
+				}
+			}
+			return true;
+		}}
 
 		return false;
 	}
@@ -113,7 +123,6 @@ namespace gdev {
 		return high;
 	}
 
-
 	std::size_t ValueDef::size() const noexcept {
 		return std::size_t(mdims[0]) * mdims[1] * mdims[2] * mdims[3];
 	}
@@ -125,21 +134,15 @@ namespace gdev {
 	}
 	
 	Value ValueDef::instance() const {
-		double mid = (low + high) * 0.5;
-		
-		Value ret;
 		switch (type()) {
 		case ValueType::Bool:
-			ret = Value::MakeBinary(false);
-			break;
+			return Value::MakeBool(false, dims());
 		case ValueType::Int:
-			ret = Value::MakeCategorical(int(low));
-			break;
+			return Value::MakeInt(low, dims());
 		case ValueType::Real:
-			ret = Value::MakeReal(low);
-			break;
+			return Value::MakeReal(low, dims());
 		}
 
-		return ret;
+		return {};
 	}
 }

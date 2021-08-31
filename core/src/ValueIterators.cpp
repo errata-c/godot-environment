@@ -121,7 +121,7 @@ namespace gdev {
 	}
 
 	iterator::difference_type iterator::operator-(iterator offset) const noexcept {
-		difference_type diff = offset.data - data;
+		difference_type diff = data - offset.data;
 		return diff / step;
 	}
 

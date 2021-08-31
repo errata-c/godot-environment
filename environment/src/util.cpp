@@ -115,9 +115,9 @@ namespace gdev {
 
 		switch (type) {
 		case ValueType::Bool:
-			return ValueDef::MakeBinary({count, 1, 1, 1});
+			return ValueDef::MakeBool({count, 1, 1, 1});
 		case ValueType::Int:
-			return ValueDef::MakeCategorical({ count, 1, 1, 1 }, low, high);
+			return ValueDef::MakeInt({ count, 1, 1, 1 }, low, high);
 		case ValueType::Real:
 			return ValueDef::MakeReal({ count, 1, 1, 1 }, low, high);
 		default:

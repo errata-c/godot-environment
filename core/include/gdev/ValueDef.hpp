@@ -12,14 +12,14 @@ namespace gdev {
 		ValueDef & operator=(const ValueDef &) = default;
 		~ValueDef() = default;
 	
-		static ValueDef MakeBinary(dim_t dims);
+		static ValueDef MakeBool(dim_t dims);
 
 		static ValueDef MakeReal(
 			dim_t dims,
 			double low = -std::numeric_limits<double>::infinity(),
 			double high = std::numeric_limits<double>::infinity());
 
-		static ValueDef MakeCategorical(
+		static ValueDef MakeInt(
 			dim_t dims,
 			int low = std::numeric_limits<int>::min(),
 			int high = std::numeric_limits<int>::max());

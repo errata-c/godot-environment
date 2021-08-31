@@ -64,10 +64,14 @@ namespace gdev {
 		Value(Value && other) noexcept;
 		Value& operator=(Value && other) noexcept;
 		~Value();
-
-		static Value MakeBinary(bool val, int x = 1, int y = 1, int z = 1, int w = 1);
+		
+		static Value MakeBool(bool val, int x = 1, int y = 1, int z = 1, int w = 1);
 		static Value MakeReal(double val, int x = 1, int y = 1, int z = 1, int w = 1);
-		static Value MakeCategorical(int val, int x = 1, int y = 1, int z = 1, int w = 1);
+		static Value MakeInt(int val, int x = 1, int y = 1, int z = 1, int w = 1);
+
+		static Value MakeBool(bool val, dim_t dims);
+		static Value MakeReal(double val, dim_t dims);
+		static Value MakeInt(int val, dim_t dims);
 
 		std::size_t size() const noexcept;
 

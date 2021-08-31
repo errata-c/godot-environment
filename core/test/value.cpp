@@ -9,13 +9,13 @@ using Value = gdev::Value;
 using VType = gdev::ValueType;
 
 TEST_CASE("Value instantiation", "[value]") {
-	Value binary = Value::MakeBinary(false);
+	Value binary = Value::MakeBool(false);
 	Value real = Value::MakeReal(0.0);
-	Value cat = Value::MakeCategorical(0);
+	Value cat = Value::MakeInt(0);
 
-	Value vecBinary = Value::MakeBinary(false, 10);
+	Value vecBinary = Value::MakeBool(false, 10);
 	Value vecReal = Value::MakeReal(0.0, 10);
-	Value vecCat = Value::MakeCategorical(0, 10);
+	Value vecCat = Value::MakeInt(0, 10);
 
 	REQUIRE(binary.isBool());
 	REQUIRE(real.isReal());
@@ -66,13 +66,13 @@ TEST_CASE("Value instantiation", "[value]") {
 }
 
 TEST_CASE("Value move, copy, equality", "[value]") {
-	Value binary = Value::MakeBinary(false);
+	Value binary = Value::MakeBool(false);
 	Value real = Value::MakeReal(0.0);
-	Value cat = Value::MakeCategorical(0);
+	Value cat = Value::MakeInt(0);
 
-	Value vecBinary = Value::MakeBinary(false, 10);
+	Value vecBinary = Value::MakeBool(false, 10);
 	Value vecReal = Value::MakeReal(0.0, 10);
-	Value vecCat = Value::MakeCategorical(0, 10);
+	Value vecCat = Value::MakeInt(0, 10);
 
 	Value binaryCopy = binary;
 	Value realCopy = real;

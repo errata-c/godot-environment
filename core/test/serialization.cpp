@@ -10,13 +10,13 @@
 
 
 TEST_CASE("serialization") {
-	gdev::Value binary = gdev::Value::MakeBinary(true);
+	gdev::Value binary = gdev::Value::MakeBool(true);
 	gdev::Value real = gdev::Value::MakeReal(0.5);
-	gdev::Value cat = gdev::Value::MakeCategorical(2);
+	gdev::Value cat = gdev::Value::MakeInt(2);
 
-	gdev::Value vecBinary = gdev::Value::MakeBinary(true, 10);
+	gdev::Value vecBinary = gdev::Value::MakeBool(true, 10);
 	gdev::Value vecReal = gdev::Value::MakeReal(0.5, 10);
-	gdev::Value vecCat = gdev::Value::MakeCategorical(2, 10);
+	gdev::Value vecCat = gdev::Value::MakeInt(2, 10);
 
 
 }

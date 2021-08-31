@@ -10,8 +10,8 @@
 using namespace gdev;
 
 TEST_CASE("ValueDef initialization", "[value def]") {
-	ValueDef binary = ValueDef::MakeBinary({1,1,1,1});
-	ValueDef cat = ValueDef::MakeCategorical({1,1,1,1}, 0, 100);
+	ValueDef binary = ValueDef::MakeBool({1,1,1,1});
+	ValueDef cat = ValueDef::MakeInt({1,1,1,1}, 0, 100);
 	ValueDef real = ValueDef::MakeReal({ 1,1,1,1 }, 0.0, 1.0);
 
 	REQUIRE(binary.contains(true));
@@ -48,8 +48,8 @@ TEST_CASE("ValueDef initialization", "[value def]") {
 }
 
 TEST_CASE("ValueDef vectors", "[value def]") {
-	ValueDef binary = ValueDef::MakeBinary({ 10,1,1,1 });
-	ValueDef cat = ValueDef::MakeCategorical({ 10,1,1,1 }, 0, 100);
+	ValueDef binary = ValueDef::MakeBool({ 10,1,1,1 });
+	ValueDef cat = ValueDef::MakeInt({ 10,1,1,1 }, 0, 100);
 	ValueDef real = ValueDef::MakeReal({ 10,1,1,1 }, 0.0, 1.0);
 
 	REQUIRE(binary.size() == 10);
