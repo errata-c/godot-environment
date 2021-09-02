@@ -19,6 +19,9 @@ namespace gdev {
 
 		return ValueDef(ValueType::Real, dims, low, high);
 	}
+	ValueDef ValueDef::MakeReal(dim_t dims, range_t range) {
+		return MakeReal(dims, range[0], range[1]);
+	}
 
 	ValueDef ValueDef::MakeInt(dim_t dims, int low, int high) {
 		if ((dims[0] < 1) || (dims[1] < 1) || (dims[2] < 1) || (dims[3] < 1)) {
@@ -26,6 +29,9 @@ namespace gdev {
 		}
 
 		return ValueDef(ValueType::Int, dims, low, high);
+	}
+	ValueDef ValueDef::MakeInt(dim_t dims, range_t range) {
+		return MakeInt(dims, range[0], range[1]);
 	}
 
 	ValueDef::ValueDef() noexcept
@@ -121,6 +127,9 @@ namespace gdev {
 	}
 	double ValueDef::upperBound() const noexcept {
 		return high;
+	}
+	range_t ValueDef::bounds() const noexcept {
+		return range;
 	}
 
 	std::size_t ValueDef::size() const noexcept {

@@ -35,8 +35,8 @@ namespace godot {
 	void EnvironmentNode::_register_methods() {
 		register_property<EnvironmentNode, double>("reward", &EnvironmentNode::set_reward, &EnvironmentNode::get_reward, 0.0);
 
-		register_method("print_action_space", &EnvironmentNode::print_action_space);
-		register_method("print_observation_space", &EnvironmentNode::print_observation_space);
+		register_method("print_action_space_def", &EnvironmentNode::print_action_space_def);
+		register_method("print_observation_space_def", &EnvironmentNode::print_observation_space_def);
 
 		register_method("_ready", &EnvironmentNode::_ready);
 		//register_method("_process", &EnvironmentNode::_process);
@@ -118,24 +118,43 @@ namespace godot {
 		//get_tree()->set_pause(false);
 	}
 
-	static void print_space(const gdev::SpaceDef& space) {
+	static void print_space_def(const gdev::SpaceDef& space) {
 		// Print the name of the entry, the type, the size, and the range.
 		for (const auto& entry : space) {
 			godot::String name = entry.name.c_str();
+			godot::String type;
+
 			switch (entry.value.type()) {
+			default:
 			case gdev::ValueType::Bool:
+				type = "Bool";
+				break;
 			case gdev::ValueType::Int:
+				type = "Int";
+				break;
 			case gdev::ValueType::Real:
+				type = "Real";
 				break;
 			}
+
+			Godot::print("name: '{0}', type: {1}, range: [{2}, {3}], dims: [{4}, {5}, {6}, {7}]",
+				name,
+				type,
+				entry.value.lowerBound(),
+				entry.value.upperBound(),
+				entry.value.dim(0),
+				entry.value.dim(1),
+				entry.value.dim(2),
+				entry.value.dim(3)
+			);
 		}
 	}
 
-	void EnvironmentNode::print_action_space() {
-		print_space(acSpace);
+	void EnvironmentNode::print_action_space_def() {
+		print_space_def(acSpace);
 	}
-	void EnvironmentNode::print_observation_space() {
-		print_space(obSpace);
+	void EnvironmentNode::print_observation_space_def() {
+		print_space_def(obSpace);
 	}
 
 	// Should I use this or _physics_process?
@@ -150,6 +169,35 @@ namespace godot {
 	}
 	double EnvironmentNode::get_reward() const noexcept {
 		return reward;
+	}
+
+	godot::Variant EnvironmentNode::get_action(godot::String name) {
+		godot::CharString cname = name.ascii();
+		
+		auto it = action.find(std::string_view(cname.get_data(), cname.length()));
+		if (it == action.end()) {
+			Godot::print_error("Failed to find the action value!",
+				"EnvironmentNode::get_action",
+				__FILE__,
+				__LINE__);
+			return godot::Variant();
+		}
+
+		return gdev::convertToVariant(it->value);
+	}
+	void EnvironmentNode::set_observation(godot::String name, godot::Variant value) {
+		godot::CharString cname = name.ascii();
+
+		auto it = action.find(std::string_view(cname.get_data(), cname.length()));
+		if (it == action.end()) {
+			Godot::print_error("Failed to find the observation value!", 
+			"EnvironmentNode::set_observation",
+			__FILE__,
+			__LINE__);
+			return;
+		}
+
+		// Make sure the types are compatible.
 	}
 
 	bool fillSpaceDef(godot::Dictionary dict, godot::String funcName, gdev::SpaceDef& space) {

@@ -2,8 +2,11 @@
 #include "Value.hpp"
 #include <cinttypes>
 #include <limits>
+#include <array>
 
 namespace gdev {
+	using range_t = std::array<double, 2>;
+
 	class ValueDef {
 	public:
 		ValueDef() noexcept;
@@ -11,23 +14,40 @@ namespace gdev {
 		ValueDef(const ValueDef &) = default;
 		ValueDef & operator=(const ValueDef &) = default;
 		~ValueDef() = default;
+
+		static constexpr range_t RealRange() {
+			return {-std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity() };
+		}
+		static constexpr range_t BoolRange() {
+			return { 0.0, 1.0 };
+		}
+		static constexpr range_t IntRange() {
+			return { std::numeric_limits<int>::min(), std::numeric_limits<int>::max() };
+		}
 	
 		static ValueDef MakeBool(dim_t dims);
 
 		static ValueDef MakeReal(
 			dim_t dims,
-			double low = -std::numeric_limits<double>::infinity(),
-			double high = std::numeric_limits<double>::infinity());
+			double low,
+			double high);
+		static ValueDef MakeReal(
+			dim_t dims,
+			range_t range = RealRange());
 
 		static ValueDef MakeInt(
 			dim_t dims,
-			int low = std::numeric_limits<int>::min(),
-			int high = std::numeric_limits<int>::max());
+			int low,
+			int high);
+		static ValueDef MakeInt(
+			dim_t dims,
+			range_t range = IntRange());
 
 		ValueType type() const noexcept;
 
 		double lowerBound() const noexcept;
 		double upperBound() const noexcept;
+		range_t bounds() const noexcept;
 
 		bool contains(bool val) const noexcept;
 		bool contains(int val) const noexcept;
@@ -48,6 +68,11 @@ namespace gdev {
 
 		ValueType mtype;
 		dim_t mdims;
-		double low, high;
+		union {
+			range_t range;
+			struct {
+				double low, high;
+			};
+		};
 	};
 }

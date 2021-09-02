@@ -5,7 +5,7 @@
 #include <catch.hpp>
 #include <gdev/Value.hpp>
 
-using Value = gdev::Value;
+using namespace gdev;
 using VType = gdev::ValueType;
 
 TEST_CASE("Value instantiation", "[value]") {
@@ -63,6 +63,18 @@ TEST_CASE("Value instantiation", "[value]") {
 	REQUIRE_THROWS(vecBinary[11]);
 	REQUIRE_THROWS(vecReal[11]);
 	REQUIRE_THROWS(vecCat[11]);
+
+	{
+		auto it = vecCat.begin();
+		auto last = vecCat.end();
+
+		for (; it != last; ++it) {
+			ValueRef ref = *it;
+			REQUIRE(ref.type() == VType::Int);
+			REQUIRE(ref.isInt());
+			REQUIRE(ref == 0);
+		}
+	}
 }
 
 TEST_CASE("Value move, copy, equality", "[value]") {

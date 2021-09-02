@@ -36,11 +36,11 @@ namespace godot {
 		void set_reward(double val);
 		double get_reward() const noexcept;
 
-		godot::Variant get_action(godot::String name, int index);
-		void set_observation(godot::String name, int index, godot::Variant value);
+		godot::Variant get_action(godot::String name);
+		void set_observation(godot::String name, godot::Variant value);
 
-		void print_action_space();
-		void print_observation_space();
+		void print_action_space_def();
+		void print_observation_space_def();
 
 		// This function is automatically registered! It must exist for every class you make with godot.
 		void _init();

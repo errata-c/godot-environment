@@ -20,35 +20,97 @@ namespace gdev {
 		if (typestring == "real") {
 			return gdev::ValueType::Real;
 		}
-		else if (typestring == "category" || typestring == "categorical") {
+		else if (typestring == "int") {
 			return gdev::ValueType::Int;
 		}
-		else if (typestring == "binary") {
+		else if (typestring == "bool") {
 			return gdev::ValueType::Bool;
 		}
 		else {
 			return std::nullopt;
 		}
 	}
-	std::optional<double> convertToRange(godot::Variant var) {
+
+	std::optional<range_t> convertToRange(godot::Variant var) {
+		std::array<godot::Variant, 2> grange;
+		range_t range;
+
+		switch (var.get_type()) {
+		case VType::ARRAY: {
+			godot::Array arr = var;
+			if (arr.size() != 2) {
+				return std::nullopt;
+			}
+			grange[0] = arr[0];
+			grange[1] = arr[1];
+			break;
+		}
+		case VType::DICTIONARY: {
+			godot::Dictionary dict = var;
+			grange[0] = dict["low"];
+			grange[1] = dict["high"];
+			break;
+		}
+		default:
+			return std::nullopt;
+		}
+
+		for (int i = 0; i < 2; ++i) {
+			switch (grange[i].get_type()) {
+			case VType::INT:
+				range[i] = int(grange[i]);
+				break;
+			case VType::REAL:
+				range[i] = double(grange[i]);
+				break;
+			case VType::BOOL:
+				range[i] = bool(grange[i]);
+				break;
+			default:
+				return std::nullopt;
+			}
+		}
+
+		return range;
+	}
+
+	std::optional<dim_t> convertToDims(godot::Variant var) {
 		switch (var.get_type()) {
 		case VType::INT:
-			return int(var);
-		case VType::REAL:
-			return double(var);
-		case VType::BOOL:
-			return bool(var);
+			return dim_t{int(var), 1, 1, 1};
+		case VType::ARRAY: {
+			godot::Array arr = var;
+			if (arr.size() <= 4) {
+				dim_t res{1,1,1,1};
+
+				for (int i = 0; i < arr.size(); ++i) {
+					godot::Variant element = arr[i];
+					if (element.get_type() != VType::INT) {
+						return std::nullopt;
+					}
+					else {
+						res[i] = int(element);
+					}
+				}
+
+				return res;
+			}
+			else {
+				return std::nullopt;
+			}
+		}
 		default:
 			return std::nullopt;
 		}
 	}
+
 	std::optional<ValueDef> convertToValueDef(godot::Variant var) {
 		if (var.get_type() != VType::DICTIONARY) {
 			return std::nullopt;
 		}
 		godot::Dictionary dict = var;
 		godot::Variant typevar = dict["type"];
-		godot::Variant countvar = dict["count"];
+		godot::Variant dimsvar = dict["dims"];
 		godot::Variant rangevar = dict["range"];
 		
 		gdev::ValueType type;
@@ -61,65 +123,49 @@ namespace gdev {
 			type = typeopt.value();
 		}
 
-		int count = 1;
-		if (countvar.get_type() == VType::INT) {
-			int tmp = countvar;
-			if (tmp > 1) {
-				count = tmp;
-			}
-		}
-		else if (countvar.get_type() != VType::NIL) {
-			Godot::print("Entry in dictionary has non-integer 'count'!");
-			return std::nullopt;
-		}
-		
-		double low = 0.0, high = 1.0;
-		if (rangevar.get_type() == VType::ARRAY) {
-			godot::Array rangearr = rangevar;
-			if (rangearr.size() != 2) {
-				return std::nullopt;
-			}
-
-			auto lowopt = convertToRange(rangearr[0]);
-			auto highopt = convertToRange(rangearr[1]);
-
-			if (lowopt && highopt) {
-				low = lowopt.value();
-				high = highopt.value();
+		dim_t dims{ 1,1,1,1 };
+		if (dimsvar.get_type() != VType::NIL) {
+			auto tmp = convertToDims(dimsvar);
+			if (tmp) {
+				dims = tmp.value();
 			}
 			else {
 				return std::nullopt;
 			}
 		}
-		else if (rangevar.get_type() != VType::NIL) {
-			return std::nullopt;
+		
+		range_t range;
+		if (rangevar.get_type() != VType::NIL) {
+			auto tmp = convertToRange(rangevar);
+			if (tmp) {
+				range = tmp.value();
+			}
+			else {
+				return std::nullopt;
+			}
 		}
 		else {
 			switch (type) {
+			default:
 			case gdev::ValueType::Bool:
-				low = 0.0;
-				high = 1.0;
+				range = ValueDef::BoolRange();
 				break;
 			case gdev::ValueType::Real:
-				low = -std::numeric_limits<double>::infinity();
-				high = std::numeric_limits<double>::infinity();
+				range = ValueDef::RealRange();
 				break;
 			case gdev::ValueType::Int:
-				low = std::numeric_limits<int>::min();
-				high = std::numeric_limits<int>::max();
-				break;
-			default:
+				range = ValueDef::IntRange();
 				break;
 			}
 		}
 
 		switch (type) {
 		case ValueType::Bool:
-			return ValueDef::MakeBool({count, 1, 1, 1});
+			return ValueDef::MakeBool(dims);
 		case ValueType::Int:
-			return ValueDef::MakeInt({ count, 1, 1, 1 }, low, high);
+			return ValueDef::MakeInt(dims, range);
 		case ValueType::Real:
-			return ValueDef::MakeReal({ count, 1, 1, 1 }, low, high);
+			return ValueDef::MakeReal(dims, range);
 		default:
 			return std::nullopt;
 		}
@@ -187,6 +233,53 @@ namespace gdev {
 			return makeView("POOL_VECTOR3_ARRAY");
 		case VType::POOL_COLOR_ARRAY:
 			return makeView("POOL_COLOR_ARRAY");
+		}
+	}
+
+	godot::Variant convertToVariant(const gdev::Value& value) {
+		std::size_t size = value.size();
+		if (size == 1) {
+			switch (value.type()) {
+			default:
+			case gdev::ValueType::Bool:
+				return godot::Variant(value.asBool());
+			case gdev::ValueType::Int:
+				return godot::Variant(value.asInt());
+			case gdev::ValueType::Real:
+				return godot::Variant(value.asReal());
+			}
+		}
+		else {
+			godot::Array arr;
+			arr.resize(size);
+
+			switch (value.type()) {
+			case ValueType::Bool: {
+				auto it = (const bool*)value.begin();
+				for (std::size_t i = 0; i < size; ++i) {
+					arr[i] = *it;
+					++it;
+				}
+				break;
+			}
+			case ValueType::Int: {
+				auto it = (const int*)value.begin();
+				for (std::size_t i = 0; i < size; ++i) {
+					arr[i] = *it;
+					++it;
+				}
+				break;
+			}
+			case ValueType::Real: {
+				auto it = (const double*)value.begin();
+				for (std::size_t i = 0; i < size; ++i) {
+					arr[i] = *it;
+					++it;
+				}
+				break;
+			}}
+			
+			return arr;
 		}
 	}
 }

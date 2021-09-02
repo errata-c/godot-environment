@@ -1,4 +1,4 @@
-#include <gdev/Value.hpp>
+#include <gdev/ValueRef.hpp>
 #include <stdexcept>
 #include <algorithm>
 #include <cmath>
@@ -160,5 +160,66 @@ namespace gdev {
 	}
 	ValueType ValueRef::type() const noexcept {
 		return mtype;
+	}
+
+	bool ValueRef::isBool() const noexcept {
+		return type() == ValueType::Bool;
+	}
+	bool ValueRef::isReal() const noexcept {
+		return type() == ValueType::Real;
+	}
+	bool ValueRef::isInt() const noexcept {
+		return type() == ValueType::Int;
+	}
+
+	bool& ValueRef::asBool() {
+		if (type() == ValueType::Bool) {
+			return *(bool*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+	const bool& ValueRef::asBool() const {
+		if (type() == ValueType::Bool) {
+			return *(bool*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+
+	int& ValueRef::asInt() {
+		if (type() == ValueType::Int) {
+			return *(int*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+	const int& ValueRef::asInt() const {
+		if (type() == ValueType::Int) {
+			return *(const int*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+
+	double& ValueRef::asReal() {
+		if (type() == ValueType::Real) {
+			return *(double*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+	const double& ValueRef::asReal() const {
+		if (type() == ValueType::Real) {
+			return *(const double*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
 	}
 }
