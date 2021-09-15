@@ -21,6 +21,9 @@ target_link_libraries(godot-rlcore PUBLIC
 	cppzmq
 	ez::serialize
 )
+target_compile_options(godot-rlcore PUBLIC
+	"$<$<CXX_COMPILER_ID:MSVC>:/wd26812>" # Stop msvc from annoying us with the unscoped enum warning.
+)
 
 add_library(godot::rlcore ALIAS godot-rlcore)
 

@@ -106,6 +106,7 @@ namespace gdev {
 
 	std::optional<ValueDef> convertToValueDef(godot::Variant var) {
 		if (var.get_type() != VType::DICTIONARY) {
+			Godot::print("Variant passed into convertToValueDef was not a Dictionary!");
 			return std::nullopt;
 		}
 		godot::Dictionary dict = var;
@@ -170,6 +171,32 @@ namespace gdev {
 			return std::nullopt;
 		}
 	}
+
+	std::optional<Value> convertToValue(godot::Variant var) {
+		switch (var.get_type()) {
+		case VType::BOOL: {
+			return Value::MakeBool(bool(var));
+		}
+		case VType::INT: {
+			return Value::MakeInt(int(var));
+		}
+		case VType::REAL: {
+			return Value::MakeReal(double(var));
+		}
+		case VType::ARRAY: {
+			// Check the size of the array, then go element by element, checking the types of the subelements
+			// Make sure that the array is either multidimensional, or that all elements are the same ValueType
+
+			/// TODO
+
+			return std::nullopt;
+		}
+		default:
+			Godot::print("Variant passed into convertToValue was not a supported type!");
+			return std::nullopt;
+		}
+	}
+
 	
 	template<std::size_t N>
 	constexpr std::string_view makeView(const char (&arr)[N]) {
@@ -239,6 +266,7 @@ namespace gdev {
 	godot::Variant convertToVariant(const gdev::Value& value) {
 		std::size_t size = value.size();
 		if (size == 1) {
+			// Single value, just return the expected value.
 			switch (value.type()) {
 			default:
 			case gdev::ValueType::Bool:
@@ -250,6 +278,10 @@ namespace gdev {
 			}
 		}
 		else {
+			// Multi-value
+			// Return a single dimensional array to represent the tensor
+			// Creating an actual multi-dimensional array requires a lot of extra allocations, seems problematic
+
 			godot::Array arr;
 			arr.resize(size);
 
@@ -281,5 +313,41 @@ namespace gdev {
 			
 			return arr;
 		}
+	}
+
+
+	godot::Variant convertToVariant(const gdev::ValueDef& val) {
+		godot::Dictionary dict;
+		dict["type"] = convertToVariant(val.type());
+		dict["dims"] = convertToVariant(val.dims());
+		dict["range"] = convertToVariant(val.range());
+		return dict;
+	}
+	godot::Variant convertToVariant(const gdev::ValueType& val) {
+		switch (val) {
+		default:
+		case ValueType::Bool:
+			return godot::String("bool");
+		case ValueType::Int:
+			return godot::String("int");
+		case ValueType::Real:
+			return godot::String("real");
+		}
+	}
+	godot::Variant convertToVariant(const gdev::range_t& val) {
+		// Default to a dictionary
+		godot::Dictionary dict;
+		dict["low"] = val[0];
+		dict["high"] = val[1];
+		return dict;
+	}
+	godot::Variant convertToVariant(const gdev::dim_t& val) {
+		godot::Array arr;
+		arr.resize(4);
+		arr[0] = val[0];
+		arr[1] = val[1];
+		arr[2] = val[2];
+		arr[3] = val[3];
+		return arr;
 	}
 }

@@ -40,10 +40,12 @@ The communication protocol:
 			step -> request contains action data, reply with step data
 			close -> no data on either side, connection will be closed
 
-Todo:
+Done:
 	Provide a way to serialize and deserialize Step, SpaceDef, Space, ValueDef, Value.
 	Test the zeromq connection with some arbitrary data.
-	Implement the Environment class, give it a MessageContext.
+	Implement the EnvironmentNode class, give it a MessageContext.
+	Design an interface for the Godot side of things, allow the environment to setup SpaceDef from GDScript.
+
+Todo:
 	Implement the RuntimeNode class, give it a MessageContext.
 	Test running a Godot instance programmatically.
-	Design an interface for the Godot side of things, allow the environment to setup SpaceDef from GDScript.

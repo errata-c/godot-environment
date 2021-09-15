@@ -19,8 +19,8 @@ namespace gdev {
 
 		return ValueDef(ValueType::Real, dims, low, high);
 	}
-	ValueDef ValueDef::MakeReal(dim_t dims, range_t range) {
-		return MakeReal(dims, range[0], range[1]);
+	ValueDef ValueDef::MakeReal(dim_t dims, range_t _range) {
+		return MakeReal(dims, _range[0], _range[1]);
 	}
 
 	ValueDef ValueDef::MakeInt(dim_t dims, int low, int high) {
@@ -30,23 +30,23 @@ namespace gdev {
 
 		return ValueDef(ValueType::Int, dims, low, high);
 	}
-	ValueDef ValueDef::MakeInt(dim_t dims, range_t range) {
-		return MakeInt(dims, range[0], range[1]);
+	ValueDef ValueDef::MakeInt(dim_t dims, range_t _range) {
+		return MakeInt(dims, _range[0], _range[1]);
 	}
 
 	ValueDef::ValueDef() noexcept
 		: mtype(ValueType::Real)
-		, low(0)
-		, high(0)
 	{
 		mdims.fill(1);
+		mrange.fill(0);
 	}
 	ValueDef::ValueDef(ValueType _type, dim_t _dims, double _low, double _high) noexcept
 		: mtype(_type)
 		, mdims(_dims)
-		, low(_low)
-		, high(_high)
-	{}
+	{
+		mrange[0] = _low;
+		mrange[1] = _high;
+	}
 
 	ValueType ValueDef::type() const noexcept {
 		return mtype;
@@ -129,7 +129,10 @@ namespace gdev {
 		return high;
 	}
 	range_t ValueDef::bounds() const noexcept {
-		return range;
+		return mrange;
+	}
+	range_t ValueDef::range() const noexcept {
+		return mrange;
 	}
 
 	std::size_t ValueDef::size() const noexcept {

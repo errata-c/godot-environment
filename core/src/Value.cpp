@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <cassert>
 
 namespace gdev {
 	using iterator = Value::iterator;
@@ -414,6 +415,20 @@ namespace gdev {
 			}
 		}
 		return std::max(1, count);
+	}
+
+	void Value::moddims(const dim_t & ndims) {
+		std::size_t count = 1;
+		for (int i = 0; i < ndims.size(); ++i) {
+			if (ndims[i] < 1) {
+				throw std::logic_error("Attempt to change a dimension to a value less then one!");
+			}
+			count *= ndims[i];
+		}
+		if (count != size()) {
+			throw std::logic_error("Attempt to moddims of gdev::Value to a set of dimensions with invalid element count!");
+		}
+		mdims = ndims;
 	}
 }
 

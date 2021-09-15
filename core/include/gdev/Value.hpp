@@ -91,12 +91,22 @@ namespace gdev {
 		const_iterator begin() const;
 		const_iterator end() const;
 
+		// Return the number of bytes in each element of this tensor
 		std::size_t elementSize() const noexcept;
+		// Return all the dimensions as a array with 4 elements
 		dim_t dims() const noexcept;
+		// Return the dimension at index
 		int dim(int index) const noexcept;
+		// Return the width of the tensor, same as dim(0)
 		int width() const noexcept;
+		// Return the height of the tensor, same as dim(1)
 		int height() const noexcept;
+		// Return the number of dimensions larger than 1
 		int numDims() const noexcept;
+
+		// Attempt to change the dimensions of this tensor, without changing the order of the elements
+		// Throws an exception if the number of elements would be changed by changing the dims
+		void moddims(const dim_t & ndims);
 	private:
 		Type mtype;
 		dim_t mdims;

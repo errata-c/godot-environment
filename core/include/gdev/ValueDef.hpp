@@ -48,6 +48,7 @@ namespace gdev {
 		double lowerBound() const noexcept;
 		double upperBound() const noexcept;
 		range_t bounds() const noexcept;
+		range_t range() const noexcept;
 
 		bool contains(bool val) const noexcept;
 		bool contains(int val) const noexcept;
@@ -69,7 +70,7 @@ namespace gdev {
 		ValueType mtype;
 		dim_t mdims;
 		union {
-			range_t range;
+			range_t mrange;
 			struct {
 				double low, high;
 			};

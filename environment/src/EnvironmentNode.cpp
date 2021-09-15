@@ -14,6 +14,8 @@ namespace godot {
 	EnvironmentNode::EnvironmentNode()
 		: reward(0.0)
 		, mcontext(gdev::Com::Environment)
+		, state(State::None)
+		, done(false)
 	{}
 	EnvironmentNode::~EnvironmentNode()
 	{}
@@ -30,6 +32,19 @@ namespace godot {
 	}
 	const gdev::SpaceDef& EnvironmentNode::observationSpaceDef() const noexcept {
 		return obSpace;
+	}
+
+	bool EnvironmentNode::reset_requested() const noexcept {
+		return state == State::Reset;
+	}
+	bool EnvironmentNode::step_requested() const noexcept {
+		return state == State::Step;
+	}
+	bool EnvironmentNode::send_defs_requested() const noexcept {
+		return state == State::SendDefs;
+	}
+	bool EnvironmentNode::close_requested() const noexcept {
+		return state == State::Close;
 	}
 
 	void EnvironmentNode::_register_methods() {
@@ -84,7 +99,6 @@ namespace godot {
 		else {
 			Godot::print("Failed to find a port argument, defaulting the port to 2048.");
 		}
-
 		
 		if (mcontext.isConnected()) {
 			Godot::print("MessageContext is already connected?");
@@ -100,6 +114,7 @@ namespace godot {
 			Godot::print("Successfully initialized the MessageContext!");
 		}
 		
+		// This block was just to check that the connection was working.
 		/*
 		if (mcontext.checkPing()) {
 			Godot::print("Got the ping!");
@@ -115,6 +130,7 @@ namespace godot {
 		}
 		*/
 
+		// Pause to make sure the system is synchronized to some extent
 		//get_tree()->set_pause(false);
 	}
 
@@ -176,7 +192,7 @@ namespace godot {
 		
 		auto it = action.find(std::string_view(cname.get_data(), cname.length()));
 		if (it == action.end()) {
-			Godot::print_error("Failed to find the action value!",
+			Godot::print_error("Failed to find an action value under the requested name!",
 				"EnvironmentNode::get_action",
 				__FILE__,
 				__LINE__);
@@ -188,9 +204,9 @@ namespace godot {
 	void EnvironmentNode::set_observation(godot::String name, godot::Variant value) {
 		godot::CharString cname = name.ascii();
 
-		auto it = action.find(std::string_view(cname.get_data(), cname.length()));
-		if (it == action.end()) {
-			Godot::print_error("Failed to find the observation value!", 
+		auto it = observation.find(std::string_view(cname.get_data(), cname.length()));
+		if (it == observation.end()) {
+			Godot::print_error("Failed to find an observation value under the requested name!", 
 			"EnvironmentNode::set_observation",
 			__FILE__,
 			__LINE__);
@@ -198,6 +214,8 @@ namespace godot {
 		}
 
 		// Make sure the types are compatible.
+		std::optional<gdev::Value> result = gdev::convertToValue(value);
+
 	}
 
 	bool fillSpaceDef(godot::Dictionary dict, godot::String funcName, gdev::SpaceDef& space) {
