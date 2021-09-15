@@ -47,6 +47,10 @@ namespace godot {
 		return state == State::Close;
 	}
 
+	void EnvironmentNode::reply() {
+
+	}
+
 	void EnvironmentNode::_register_methods() {
 		register_property<EnvironmentNode, double>("reward", &EnvironmentNode::set_reward, &EnvironmentNode::get_reward, 0.0);
 
@@ -58,12 +62,19 @@ namespace godot {
 
 		register_method("set_action_space", &EnvironmentNode::set_action_space);
 		register_method("set_observation_space", &EnvironmentNode::set_observation_space);
+
+		// Signals for the requests:
+		register_signal<EnvironmentNode>("send_defs", godot::Dictionary());
+		register_signal<EnvironmentNode>("reset", godot::Dictionary());
+		register_signal<EnvironmentNode>("step", godot::Dictionary());
+		register_signal<EnvironmentNode>("close", godot::Dictionary());
 	}
 
 	void EnvironmentNode::_init() {
 		// Keep this node running
 		set_pause_mode(PAUSE_MODE_PROCESS);
 	}
+
 	// Node added to scene tree
 	void EnvironmentNode::_ready() {
 		//get_tree()->set_pause(true);
@@ -215,7 +226,15 @@ namespace godot {
 
 		// Make sure the types are compatible.
 		std::optional<gdev::Value> result = gdev::convertToValue(value);
-
+		if (!result) {
+			Godot::print_error("Failed to convert the Variant passed into a valid observation value!",
+				"EnvironmentNode::set_observation",
+				__FILE__,
+				__LINE__);
+		}
+		else {
+			it->value = std::move(result.value());
+		}
 	}
 
 	bool fillSpaceDef(godot::Dictionary dict, godot::String funcName, gdev::SpaceDef& space) {

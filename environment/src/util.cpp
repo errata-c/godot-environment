@@ -186,10 +186,52 @@ namespace gdev {
 		case VType::ARRAY: {
 			// Check the size of the array, then go element by element, checking the types of the subelements
 			// Make sure that the array is either multidimensional, or that all elements are the same ValueType
+			godot::Array arr = var;
+			std::size_t size = arr.size();
+			if (size == 0) {
+				// Empty array is not allowed
+				Godot::print("Array passed into convertToValue was empty!");
+				return std::nullopt;
+			}
 
-			/// TODO
+			gdev::Value result;
 
-			return std::nullopt;
+			VType etype = arr[0].get_type();
+			switch (etype) {
+			case VType::BOOL:
+				result = gdev::Value::MakeBool(false, size);
+				break;
+			case VType::INT:
+				result = gdev::Value::MakeInt(0, size);
+				break;
+			case VType::REAL:
+				result = gdev::Value::MakeReal(0.0, size);
+				break;
+			default:
+				// Elements must be a valid type
+				Godot::print("Array passed into convertToValue did not have a valid element type!");
+				return std::nullopt;
+			}
+
+			for (std::size_t i = 0; i < size; ++i) {
+				if (arr[i].get_type() != etype) {
+					Godot::print("Array passed into convertToValue did not have elements all of the same type!");
+					return std::nullopt;
+				}
+				switch (etype) {
+				case VType::BOOL:
+					result[i] = bool(arr[i]);
+					break;
+				case VType::INT:
+					result[i] = int(arr[i]);
+					break;
+				case VType::REAL:
+					result[i] = double(arr[i]);
+					break;
+				}
+			}
+
+			return result;
 		}
 		default:
 			Godot::print("Variant passed into convertToValue was not a supported type!");

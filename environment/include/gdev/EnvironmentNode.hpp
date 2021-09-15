@@ -41,6 +41,8 @@ namespace godot {
 		gdev::SpaceDef & observationSpaceDef() noexcept;
 		const gdev::SpaceDef& observationSpaceDef() const noexcept;
 
+		void reply();
+
 		bool reset_requested() const noexcept;
 		bool step_requested() const noexcept;
 		bool send_defs_requested() const noexcept;

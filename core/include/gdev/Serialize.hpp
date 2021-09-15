@@ -2,6 +2,7 @@
 #include <cinttypes>
 #include <vector>
 #include "ValueType.hpp"
+#include "RequestType.hpp"
 
 namespace gdev {
 	class Value;
@@ -16,6 +17,7 @@ namespace gdev {
 		SpaceDef,
 	};
 
+	void serialize(RequestType type, std::vector<uint8_t>& buffer);
 	void serialize(SerializedType type, std::vector<uint8_t>& buffer);
 	void serialize(ValueType type, std::vector<uint8_t>& buffer);
 
@@ -24,6 +26,7 @@ namespace gdev {
 	void serialize(const gdev::Space& value, std::vector<uint8_t>& buffer);
 	void serialize(const gdev::SpaceDef& value, std::vector<uint8_t>& buffer);
 
+	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, RequestType& value);
 	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, SerializedType& value);
 	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, ValueType& value);
 

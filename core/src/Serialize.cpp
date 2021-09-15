@@ -8,6 +8,9 @@
 #include <ez/deserialize.hpp>
 
 namespace gdev {
+	void serialize(RequestType type, std::vector<uint8_t>& buffer) {
+		ez::serialize::u8((uint8_t)type, buffer);
+	}
 	void serialize(SerializedType type, std::vector<uint8_t>& buffer) {
 		ez::serialize::u8((uint8_t)type, buffer);
 	}
@@ -91,6 +94,12 @@ namespace gdev {
 		}
 	}
 
+	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, RequestType& value) {
+		uint8_t tmp;
+		buffer = ez::deserialize::u8(buffer, end, tmp);
+		value = static_cast<RequestType>(tmp);
+		return buffer;
+	}
 	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, SerializedType& value) {
 		uint8_t tmp;
 		buffer = ez::deserialize::u8(buffer, end, tmp);

@@ -34,11 +34,18 @@ The communication protocol:
 		Exceptional circumstances need a way to be handled, the agent or the environment could encounter some kind of issue.
 
 		requests:
-			observation_space -> no data in request, reply with observation space definition
-			action_space -> no data in request, reply with action space definition
+			send_defs -> no data in request, reply with observation and action space definitions
 			reset -> no data in request, reply with initial step data
 			step -> request contains action data, reply with step data
 			close -> no data on either side, connection will be closed
+	
+Request reply loop:
+	EnvironmentNode should provide signals for each of the requests that can occur.
+	EnvironmentNode should have a reply method to specify that the request has been fulfilled.
+	EnvironmentNode needs to sync the execution of the game engine to the training cycle.
+		This should probably be done in the _physics_process method, to avoid the variable nature of the _process method.
+		The game should be paused in between steps, to prevent it from advancing without the Agents interaction.
+		The state of the node will determine how _process method proceeds.
 
 Done:
 	Provide a way to serialize and deserialize Step, SpaceDef, Space, ValueDef, Value.

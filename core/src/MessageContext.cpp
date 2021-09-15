@@ -5,15 +5,6 @@
 #include <errno.h>
 
 namespace gdev {
-
-	// The values for each request over transport
-	const int 
-		observationSpaceReq = 1,
-		actionSpaceReq = 2,
-		resetReq = 3,
-		stepReq = 4,
-		closeReq = 5;
-
 	MessageContext::MessageContext(Com _type)
 		: ctx()
 		, socket(ctx, _type == Com::Agent ? zmq::socket_type::req : zmq::socket_type::rep)
