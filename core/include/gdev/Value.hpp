@@ -56,19 +56,19 @@ namespace gdev {
 		const int& asInt() const;
 
 		ValueRef at(int i0);
-		const ValueRef at(int i0) const;
+		ConstValueRef at(int i0) const;
 
 		ValueRef at(int i0, int i1);
-		const ValueRef at(int i0, int i1) const;
+		ConstValueRef at(int i0, int i1) const;
 
 		ValueRef at(int i0, int i1, int i2);
-		const ValueRef at(int i0, int i1, int i2) const;
+		ConstValueRef at(int i0, int i1, int i2) const;
 
 		ValueRef at(int i0, int i1, int i2, int i3);
-		const ValueRef at(int i0, int i1, int i2, int i3) const;
+		ConstValueRef at(int i0, int i1, int i2, int i3) const;
 
 		ValueRef operator[](int index);
-		const ValueRef operator[](int index) const;
+		ConstValueRef operator[](int index) const;
 
 		bool equal(const Value & other) const noexcept;
 		bool nequal(const Value & other) const noexcept;

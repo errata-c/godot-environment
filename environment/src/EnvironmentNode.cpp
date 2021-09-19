@@ -5,6 +5,7 @@
 #include <limits>
 
 #include <gdev/util.hpp>
+#include <gdev/Serialize.hpp>
 
 #include <SceneTree.hpp>
 #include <PoolArrays.hpp>
@@ -47,21 +48,62 @@ namespace godot {
 		return state == State::Close;
 	}
 
-	void EnvironmentNode::reply() {
 
+	void EnvironmentNode::set_reward(double val) {
+		reward = val;
+	}
+	double EnvironmentNode::get_reward() const noexcept {
+		return reward;
+	}
+
+	bool EnvironmentNode::get_done() const noexcept {
+		return done;
+	}
+	void EnvironmentNode::set_done(bool val) noexcept {
+		done = val;
+	}
+
+
+	void EnvironmentNode::reply() {
+		switch (state) {
+		default:
+		case State::Close:
+		case State::None:
+			break;
+		case State::Reset:
+		case State::Step:
+			// Both reset and step send the reward info + the observation info
+			break;
+		case State::SendDefs:
+			// 
+			break;
+		}
 	}
 
 	void EnvironmentNode::_register_methods() {
 		register_property<EnvironmentNode, double>("reward", &EnvironmentNode::set_reward, &EnvironmentNode::get_reward, 0.0);
+		register_property<EnvironmentNode, bool>("done", &EnvironmentNode::set_done, &EnvironmentNode::get_done, false);
 
+		// Utility for checking that everything was initialized properly
 		register_method("print_action_space_def", &EnvironmentNode::print_action_space_def);
 		register_method("print_observation_space_def", &EnvironmentNode::print_observation_space_def);
 
+		// General setup:
 		register_method("_ready", &EnvironmentNode::_ready);
-		//register_method("_process", &EnvironmentNode::_process);
+		// The main process:
+		register_method("_physics_process", &EnvironmentNode::_physics_process);
 
-		register_method("set_action_space", &EnvironmentNode::set_action_space);
-		register_method("set_observation_space", &EnvironmentNode::set_observation_space);
+		// For defining the action and observation spaces
+		register_method("define_action_space", &EnvironmentNode::define_action_space);
+		register_method("define_observation_space", &EnvironmentNode::define_observation_space);
+
+		// For getting and setting actions + observations
+		register_method("get_action", &EnvironmentNode::get_action);
+		register_method("set_observation", &EnvironmentNode::set_observation);
+
+		// To make the environment reply to a request.
+		// This HAS to be called after a request is received or the game will hang indefinitely.
+		register_method("reply", &EnvironmentNode::reply);
 
 		// Signals for the requests:
 		register_signal<EnvironmentNode>("send_defs", godot::Dictionary());
@@ -144,59 +186,53 @@ namespace godot {
 		// Pause to make sure the system is synchronized to some extent
 		//get_tree()->set_pause(false);
 	}
+	
+	void EnvironmentNode::_physics_process(float delta) {
+		// Wait for a message
+		// Once a message is received, determine what kind of request it is.
 
-	static void print_space_def(const gdev::SpaceDef& space) {
-		// Print the name of the entry, the type, the size, and the range.
-		for (const auto& entry : space) {
-			godot::String name = entry.name.c_str();
-			godot::String type;
-
-			switch (entry.value.type()) {
-			default:
-			case gdev::ValueType::Bool:
-				type = "Bool";
-				break;
-			case gdev::ValueType::Int:
-				type = "Int";
-				break;
-			case gdev::ValueType::Real:
-				type = "Real";
-				break;
+		if (mcontext.recv(buffer)) {
+			if (buffer.empty()) {
+				Godot::print_error("Failed to recv a message from the agent!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
+				return;
 			}
 
-			Godot::print("name: '{0}', type: {1}, range: [{2}, {3}], dims: [{4}, {5}, {6}, {7}]",
-				name,
-				type,
-				entry.value.lowerBound(),
-				entry.value.upperBound(),
-				entry.value.dim(0),
-				entry.value.dim(1),
-				entry.value.dim(2),
-				entry.value.dim(3)
-			);
+			gdev::RequestType req;
+			const uint8_t * data = buffer.data();
+			const uint8_t * end = buffer.data() + buffer.size();
+			data = gdev::deserialize(data, end, req);
+
+			switch (req) {
+			case gdev::RequestType::Close:
+				// No data in request
+				state = State::Close;
+				emit_signal("close");
+				break;
+			case gdev::RequestType::Reset:
+				// No data in request
+				state = State::Reset;
+				emit_signal("reset");
+				break;
+			case gdev::RequestType::SendDefs:
+				// No data in request
+				state = State::SendDefs;
+				emit_signal("send_defs");
+				break;
+			case gdev::RequestType::Step:
+				// Step contains the action data
+				state = State::Step;
+				data = gdev::deserialize(data, end, action);
+
+				emit_signal("step");
+				break;
+			}
+		}
+		else {
+			Godot::print_error("Failed to recv a message from the agent!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
 		}
 	}
 
-	void EnvironmentNode::print_action_space_def() {
-		print_space_def(acSpace);
-	}
-	void EnvironmentNode::print_observation_space_def() {
-		print_space_def(obSpace);
-	}
-
-	// Should I use this or _physics_process?
-	void EnvironmentNode::_process(float delta) {
-		// Check for message, block until found
-		// Once found, send a signal if appropriate
-		// 
-	}
-
-	void EnvironmentNode::set_reward(double val) {
-		reward = val;
-	}
-	double EnvironmentNode::get_reward() const noexcept {
-		return reward;
-	}
+	
 
 	godot::Variant EnvironmentNode::get_action(godot::String name) {
 		godot::CharString cname = name.ascii();
@@ -282,20 +318,70 @@ namespace godot {
 		return true;
 	}
 
-	void EnvironmentNode::set_action_space(godot::Dictionary dict) {
-		if (fillSpaceDef(dict, "EnvironmentNode::set_action_space", acSpace)) {
-			Godot::print("Successfully setup the action space!");
+	void EnvironmentNode::define_action_space(godot::Dictionary dict) {
+		if (acSpace.empty()) {
+			if (fillSpaceDef(dict, "EnvironmentNode::define_action_space", acSpace)) {
+				Godot::print("Successfully defined the action space!");
+			}
+			else {
+				Godot::print("Failed to define the action space!");
+			}
 		}
 		else {
-			Godot::print("Failed to setup the action space!");
+			Godot::print_error("Action space definition has already been initialized!", "EnvironmentNode::define_action_space", __FILE__, __LINE__);
 		}
 	}
-	void EnvironmentNode::set_observation_space(godot::Dictionary dict) {
-		if (fillSpaceDef(dict, "EnvironmentNode::set_observation_space", obSpace)) {
-			Godot::print("Successfully setup the observation space!");
+	void EnvironmentNode::define_observation_space(godot::Dictionary dict) {
+		if (obSpace.empty()) {
+			if (fillSpaceDef(dict, "EnvironmentNode::define_observation_space", obSpace)) {
+				observation = obSpace.instance();
+				Godot::print("Successfully defined the observation space!");
+			}
+			else {
+				Godot::print("Failed to define the observation space!");
+			}
 		}
 		else {
-			Godot::print("Failed to setup the observation space!");
+			Godot::print_error("Observation space definition has already been initialized!", "EnvironmentNode::define_observation_space", __FILE__, __LINE__);
 		}
+	}
+
+	static void print_space_def(const gdev::SpaceDef& space) {
+		// Print the name of the entry, the type, the size, and the range.
+		for (const auto& entry : space) {
+			godot::String name = entry.name.c_str();
+			godot::String type;
+
+			switch (entry.value.type()) {
+			default:
+			case gdev::ValueType::Bool:
+				type = "Bool";
+				break;
+			case gdev::ValueType::Int:
+				type = "Int";
+				break;
+			case gdev::ValueType::Real:
+				type = "Real";
+				break;
+			}
+
+			Godot::print("name: '{0}', type: {1}, range: [{2}, {3}], dims: [{4}, {5}, {6}, {7}]",
+				name,
+				type,
+				entry.value.lowerBound(),
+				entry.value.upperBound(),
+				entry.value.dim(0),
+				entry.value.dim(1),
+				entry.value.dim(2),
+				entry.value.dim(3)
+			);
+		}
+	}
+
+	void EnvironmentNode::print_action_space_def() {
+		print_space_def(acSpace);
+	}
+	void EnvironmentNode::print_observation_space_def() {
+		print_space_def(obSpace);
 	}
 }

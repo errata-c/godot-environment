@@ -51,12 +51,12 @@ namespace godot {
 		// Get the value of the done flag, used to signal that the environment has hit some kind of end condition.
 		bool get_done() const noexcept;
 		// Set the value of the done flag, used to signal that the environment has hit some kind of end condition.
-		bool set_done(bool val) noexcept;
+		void set_done(bool val) noexcept;
 
-		// Set the action space definition.
-		void set_action_space(godot::Dictionary space);
-		// Set the observation space definition.
-		void set_observation_space(godot::Dictionary space);
+		// Define the action space.
+		void define_action_space(godot::Dictionary space);
+		// Define the observation space.
+		void define_observation_space(godot::Dictionary space);
 
 		// Set the reward for the current step of the training.
 		void set_reward(double val);
@@ -82,9 +82,11 @@ namespace godot {
 
 		void _ready();
 
-		void _process(float delta);
+		void _physics_process(float delta);
 	private:
 		gdev::MessageContext mcontext;
+
+		std::vector<std::uint8_t> buffer;
 
 		gdev::SpaceDef acSpace, obSpace;
 		gdev::Space observation, action;

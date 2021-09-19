@@ -79,6 +79,8 @@ namespace gdev {
 	}
 	bool ValueRef::operator==(const ValueRef& val) const noexcept {
 		switch (val.type()) {
+		default:
+			return false;
 		case ValueType::Bool:
 			return operator==(*(const bool*)val.data);
 		case ValueType::Int:
@@ -115,6 +117,8 @@ namespace gdev {
 	}
 	bool ValueRef::operator!=(const ValueRef& val) const noexcept {
 		switch (val.type()) {
+		default:
+			return false;
 		case ValueType::Bool:
 			return operator!=(*(const bool*)val.data);
 		case ValueType::Int:
@@ -131,6 +135,7 @@ namespace gdev {
 		else {
 			throw std::logic_error("ValueRef cannot cast to bool!");
 		}
+		return *this;
 	}
 	ValueRef& ValueRef::operator=(int val) {
 		if (type() == ValueType::Int) {
@@ -139,6 +144,7 @@ namespace gdev {
 		else {
 			throw std::logic_error("ValueRef cannot cast to int!");
 		}
+		return *this;
 	}
 	ValueRef& ValueRef::operator=(double val) {
 		if (type() == ValueType::Real) {
@@ -147,9 +153,11 @@ namespace gdev {
 		else {
 			throw std::logic_error("ValueRef cannot cast to real!");
 		}
+		return *this;
 	}
 	ValueRef& ValueRef::operator=(const ValueRef& val) {
 		switch (val.type()) {
+		default:
 		case ValueType::Bool:
 			return operator=(*(const bool*)val.data);
 		case ValueType::Int:
@@ -215,6 +223,181 @@ namespace gdev {
 		}
 	}
 	const double& ValueRef::asReal() const {
+		if (type() == ValueType::Real) {
+			return *(const double*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+
+
+
+
+
+
+
+
+
+	ConstValueRef::ConstValueRef(const bool& val) noexcept
+		: mtype(ValueType::Bool)
+		, data(&val)
+	{}
+	ConstValueRef::ConstValueRef(const int& val) noexcept
+		: mtype(ValueType::Bool)
+		, data(&val)
+	{}
+	ConstValueRef::ConstValueRef(const double& val) noexcept
+		: mtype(ValueType::Bool)
+		, data(&val)
+	{}
+	ConstValueRef::ConstValueRef(const ValueRef& val) noexcept
+		: mtype(val.type())
+		, data(val.data)
+	{}
+	ConstValueRef::ConstValueRef(const ConstValueRef& val) noexcept
+		: mtype(val.type())
+		, data(val.data)
+	{}
+	ConstValueRef::ConstValueRef(const void* val, ValueType _type) noexcept
+		: mtype(_type)
+		, data(val)
+	{}
+
+	ConstValueRef::operator bool() {
+		if (type() == ValueType::Bool) {
+			return (const bool*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot be cast to bool!");
+		}
+	}
+	ConstValueRef::operator int() {
+		if (type() == ValueType::Int) {
+			return *(const int*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot be cast to int!");
+		}
+	}
+	ConstValueRef::operator double() {
+		if (type() == ValueType::Real) {
+			return *(const double*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot be cast to double!");
+		}
+	}
+
+	bool ConstValueRef::operator==(bool val) const noexcept {
+		if (type() == ValueType::Bool) {
+			return (*(const bool*)data) == val;
+		}
+		else {
+			return false;
+		}
+	}
+	bool ConstValueRef::operator==(int val) const noexcept {
+		if (type() == ValueType::Int) {
+			return (*(const int*)data) == val;
+		}
+		else {
+			return false;
+		}
+	}
+	bool ConstValueRef::operator==(double val) const noexcept {
+		if (type() == ValueType::Real) {
+			double tmp = *(const double*)data;
+			return std::abs(val - tmp) < 1e-6;
+		}
+		else {
+			return false;
+		}
+	}
+	bool ConstValueRef::operator==(const ValueRef& val) const noexcept {
+		switch (val.type()) {
+		default:
+			return false;
+		case ValueType::Bool:
+			return operator==(*(const bool*)val.data);
+		case ValueType::Int:
+			return operator==(*(const int*)val.data);
+		case ValueType::Real:
+			return operator==(*(const double*)val.data);
+		}
+	}
+
+	bool ConstValueRef::operator!=(bool val) const noexcept {
+		if (type() == ValueType::Bool) {
+			return *(const bool*)data != val;
+		}
+		else {
+			return true;
+		}
+	}
+	bool ConstValueRef::operator!=(int val) const noexcept {
+		if (type() == ValueType::Int) {
+			return *(const int*)data != val;
+		}
+		else {
+			return true;
+		}
+	}
+	bool ConstValueRef::operator!=(double val) const noexcept {
+		if (type() == ValueType::Real) {
+			double tmp = *(const double*)data;
+			return std::abs(tmp - val) >= 1e-6;
+		}
+		else {
+			return true;
+		}
+	}
+	bool ConstValueRef::operator!=(const ValueRef& val) const noexcept {
+		switch (val.type()) {
+		default:
+			return false;
+		case ValueType::Bool:
+			return operator!=(*(const bool*)val.data);
+		case ValueType::Int:
+			return operator!=(*(const int*)val.data);
+		case ValueType::Real:
+			return operator!=(*(const double*)val.data);
+		}
+	}
+
+	ValueType ConstValueRef::type() const noexcept {
+		return mtype;
+	}
+
+	bool ConstValueRef::isBool() const noexcept {
+		return type() == ValueType::Bool;
+	}
+	bool ConstValueRef::isReal() const noexcept {
+		return type() == ValueType::Real;
+	}
+	bool ConstValueRef::isInt() const noexcept {
+		return type() == ValueType::Int;
+	}
+
+	const bool& ConstValueRef::asBool() const {
+		if (type() == ValueType::Bool) {
+			return *(bool*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+
+	const int& ConstValueRef::asInt() const {
+		if (type() == ValueType::Int) {
+			return *(const int*)data;
+		}
+		else {
+			throw std::logic_error("ValueRef cannot cast to real!");
+		}
+	}
+
+	const double& ConstValueRef::asReal() const {
 		if (type() == ValueType::Real) {
 			return *(const double*)data;
 		}

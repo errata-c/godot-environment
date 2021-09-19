@@ -282,6 +282,7 @@ namespace gdev {
 		}
 		
 		switch (type()) {
+		default:
 		case ValueType::Bool:
 			return ValueRef(((bool *)data)[i]);
 		case ValueType::Int:
@@ -290,12 +291,13 @@ namespace gdev {
 			return ValueRef(((double*)data)[i]);
 		}
 	}
-	const ValueRef Value::at(int i) const {
+	ConstValueRef Value::at(int i) const {
 		if (i >= size()) {
 			throw std::out_of_range("Access out of bounds element in Value Vector!");
 		}
 
 		switch (type()) {
+		default:
 		case ValueType::Bool:
 			return ValueRef(((bool*)data)[i]);
 		case ValueType::Int:
@@ -305,10 +307,31 @@ namespace gdev {
 		}
 	}
 
+	ValueRef Value::at(int i0, int i1) {
+		return at(i0 + dim(0) * i1);
+	}
+	ConstValueRef Value::at(int i0, int i1) const {
+		return at(i0 + dim(0) * i1);
+	}
+
+	ValueRef Value::at(int i0, int i1, int i2) {
+		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2);
+	}
+	ConstValueRef Value::at(int i0, int i1, int i2) const {
+		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2);
+	}
+
+	ValueRef Value::at(int i0, int i1, int i2, int i3) {
+		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2 + dim(0) * dim(1) * dim(2) * i3);
+	}
+	ConstValueRef Value::at(int i0, int i1, int i2, int i3) const {
+		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2 + dim(0) * dim(1) * dim(2) * i3);
+	}
+
 	ValueRef Value::operator[](int i){
 		return at(i);
 	}
-	const ValueRef Value::operator[](int i) const {
+	ConstValueRef Value::operator[](int i) const {
 		return at(i);
 	}
 
@@ -387,6 +410,7 @@ namespace gdev {
 
 	std::size_t Value::elementSize() const noexcept {
 		switch (type()) {
+		default:
 		case ValueType::Bool:
 			return sizeof(bool);
 		case ValueType::Int:
