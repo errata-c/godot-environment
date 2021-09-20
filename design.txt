@@ -1,10 +1,10 @@
 SpaceDef and ValueDef for defining the space of actions and observations.
 
 Agent:
-	C++ side of things.
-	Must be capable of starting an instance of the Godot game engine programmatically.
-	Start communication with the environment, throw exception if something fails.
-	This is the easier to implement part of the library.
+	Communicates with the environment using ZMQ.
+	Starts the game using system() command, requires that godot be accessible from the command line.
+	Receives step data from the environment
+	Sends action data to the environment
 
 Environment:
 	This will be an instance of the Godot game engine with the RuntimeNode inside it for communication purposes.
@@ -16,6 +16,12 @@ Environment:
 
 	Every step of the scene must enact the action given by the agent,
 	then calculate the reward, the observation, and determine if the end condition has been met.
+
+Simple setup:
+	agent creates an instance of the environment
+	request the space definitions from the environment -> env reply with defs
+	request reset -> env reply with initial step data
+	request step + send action data -> env reply with step data
 
 
 The communication protocol:

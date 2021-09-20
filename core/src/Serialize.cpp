@@ -94,6 +94,29 @@ namespace gdev {
 		}
 	}
 
+	void serializeDefs(const gdev::SpaceDef& acSpace, const gdev::SpaceDef& obSpace, std::vector<uint8_t>& buffer) {
+		serialize(acSpace, buffer);
+		serialize(obSpace, buffer);
+	}
+	void serializeStep(const gdev::Space& observation, float reward, bool done, std::vector<uint8_t>& buffer) {
+		ez::serialize::u8(uint8_t(done), buffer);
+		ez::serialize::f32(reward, buffer);
+		serialize(observation, buffer);
+	}
+
+	const uint8_t* deserializeDefs(const uint8_t* buffer, const uint8_t* end, gdev::SpaceDef& acSpace, gdev::SpaceDef& obSpace) {
+		buffer = deserialize(buffer, end, acSpace);
+		return deserialize(buffer, end, obSpace);
+	}
+	const uint8_t* deserializeStep(const uint8_t* buffer, const uint8_t* end, gdev::Space& observation, float& reward, bool& done) {
+		uint8_t donetmp;
+		buffer = ez::deserialize::u8(buffer, end, donetmp);
+		done = donetmp > 0;
+
+		buffer = ez::deserialize::f32(buffer, end, reward);
+		return deserialize(buffer, end, observation);
+	}
+
 	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, RequestType& value) {
 		uint8_t tmp;
 		buffer = ez::deserialize::u8(buffer, end, tmp);
