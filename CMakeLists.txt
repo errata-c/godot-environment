@@ -15,26 +15,24 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(ez-cmake)
 
+# Used for serialization of data passed between agent and environment.
 find_package(ez-serialize CONFIG REQUIRED)
+
+# Used to interface with the godot game engine.
 find_package(godot-cpp CONFIG REQUIRED)
+
+# Used to facilitate the request reply loop between the agent and the environment.
 find_package(cppzmq CONFIG REQUIRED)
 
+
 # create the core library, shared features of both the agent and environment.
-# adds godot::rlcore target
+# adds gdev::core target
 add_subdirectory("core")
 
 # Create the RL agent library, contains the necessary code to communicate with the environment.
-# adds godot::agent target
+# adds gdev::agent target
 add_subdirectory("agent")
 
 # Create the RL environment library, contains the necessary integration with the godot game engine.
-# adds godot::environment target
+# adds gdev::environment target
 add_subdirectory("environment")
-
-
-# Installing the agent library should not drag the environment library with it.
-# They must be separate components.
-
-# Provide a component for installing the environment library as a final product to Godot.
-# Provide another component for installing the environment library as an export.
-# Provide a component for installing the agent library as an export.

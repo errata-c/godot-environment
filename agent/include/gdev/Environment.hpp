@@ -4,7 +4,7 @@
 #include <gdev/Space.hpp>
 #include <gdev/Value.hpp>
 
-
+#include <gdev/MessageContext.hpp>
 
 namespace gdev {
 	struct Step {
@@ -14,8 +14,10 @@ namespace gdev {
 	};
 
 	/*
-		This class handles the interfacing with the Godot game engine.
-		It will attempt to connect to a running instance of an environment, and allow the agent to interact with it.
+	This class handles the interfacing with the Godot game engine.
+	It will attempt to connect to a running instance of an environment, and allow the agent to interact with it.
+	
+	
 	*/
 	class Environment {
 	public:
@@ -39,6 +41,6 @@ namespace gdev {
 		SpaceDef acSpace, obSpace;
 		Space currentObservation;
 
-
+		gdev::MessageContext mcontext;
 	};
 }

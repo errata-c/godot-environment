@@ -1,26 +1,26 @@
 
 
 # The static implementation for export
-add_library(godot-environment SHARED
+add_library(gdev-environment SHARED
 	"src/EnvironmentNode.cpp"
 	"src/gdnlibrary.cpp"
 	"src/util.cpp"
 )
-target_link_libraries(godot-environment PRIVATE
+target_link_libraries(gdev-environment PRIVATE
 	godot::cpp
-	godot::rlcore
+	gdev::core
 )
-target_include_directories(godot-environment PRIVATE
+target_include_directories(gdev-environment PRIVATE
 	"$<INSTALL_INTERFACE:include>"
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
 )
-set_property(TARGET godot-environment PROPERTY OUTPUT_NAME "gdev")
-add_library(godot::environment ALIAS godot-environment)
+set_property(TARGET gdev-environment PROPERTY OUTPUT_NAME "gdev")
+add_library(gdev::environment ALIAS gdev-environment)
 
 
 install_gdnlib(
 	NAME "gdev"
-	TARGET "godot-environment"
+	TARGET "gdev-environment"
 	DESTINATION "bin"
 	CLASSES "EnvironmentNode"
 	COMPONENT GDNLIB

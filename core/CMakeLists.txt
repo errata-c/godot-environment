@@ -1,5 +1,5 @@
 
-add_library(godot-rlcore STATIC
+add_library(gdev-core STATIC
 	"src/Value.cpp"
 	"src/ValueRef.cpp"
 	"src/ValueIterators.cpp"
@@ -10,21 +10,21 @@ add_library(godot-rlcore STATIC
 	"src/MessageContext.cpp"
 	"src/Serialize.cpp"
 )
-target_include_directories(godot-rlcore PUBLIC
+target_include_directories(gdev-core PUBLIC
 	"$<INSTALL_INTERFACE:include>"
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
 )
-target_compile_features(godot-rlcore PUBLIC 
+target_compile_features(gdev-core PUBLIC 
 	cxx_std_17
 )
-target_link_libraries(godot-rlcore PUBLIC 
+target_link_libraries(gdev-core PUBLIC 
 	cppzmq
 	ez::serialize
 )
-target_compile_options(godot-rlcore PUBLIC
+target_compile_options(gdev-core PUBLIC
 	"$<$<CXX_COMPILER_ID:MSVC>:/wd26812>" # Stop msvc from annoying us with the unscoped enum warning.
 )
 
-add_library(godot::rlcore ALIAS godot-rlcore)
+add_library(gdev::core ALIAS gdev-core)
 
 add_subdirectory("test")

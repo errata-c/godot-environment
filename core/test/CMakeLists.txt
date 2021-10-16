@@ -10,5 +10,5 @@ add_executable(rlcore_test
 )
 target_link_libraries(rlcore_test PRIVATE
 	Catch2::Catch2
-	godot::rlcore
+	gdev::core
 )
