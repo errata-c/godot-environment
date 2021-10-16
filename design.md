@@ -2,7 +2,7 @@
 
 #### Agent:
 
-​	Creates an instance of the environment and communicates with it in a request reply loop. The Environment class must first connect to the actual environment instance that was created, then it receives data describing the action space and the observation space. To interact with Godot, the agent instances the action space, and fills it with the desired actions for the current time step. The Space object is then passed over using the `Step step(const Space& action)` method.
+​	Creates an instance of the environment and communicates with it in a request reply loop. The Agent class must first connect to the actual environment instance that was created, then it receives data describing the action space and the observation space. To interact with Godot, the agent instances the action space, and fills it with the desired actions for the current time step. The Space object is then passed over using the `Step step(const Space& action)` method.
 
 #### Environment:
 

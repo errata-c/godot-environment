@@ -4,7 +4,7 @@
 #include <cinttypes>
 #include <limits>
 
-#include <gdev/util.hpp>
+#include <gdev/GodotConversions.hpp>
 #include <gdev/Serialize.hpp>
 
 #include <SceneTree.hpp>

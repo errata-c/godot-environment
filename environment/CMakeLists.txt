@@ -4,7 +4,7 @@
 add_library(gdev-environment SHARED
 	"src/EnvironmentNode.cpp"
 	"src/gdnlibrary.cpp"
-	"src/util.cpp"
+	"src/GodotConversions.cpp"
 )
 target_link_libraries(gdev-environment PRIVATE
 	godot::cpp
