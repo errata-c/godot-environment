@@ -19,7 +19,7 @@ FetchContent_MakeAvailable(ez-cmake)
 find_package(ez-serialize CONFIG REQUIRED)
 
 # Used to interface with the godot game engine.
-find_package(godot-cpp CONFIG REQUIRED)
+find_package(godot-cpp 4 CONFIG REQUIRED)
 
 # Used to facilitate the request reply loop between the agent and the environment.
 find_package(cppzmq CONFIG REQUIRED)
