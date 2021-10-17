@@ -9,7 +9,7 @@ namespace gdev {
 		: ctx()
 		, socket(ctx, _type == Com::Agent ? zmq::socket_type::req : zmq::socket_type::rep)
 		, type(_type)
-		, port(-1)
+		, mport(-1)
 	{}
 	MessageContext::~MessageContext()
 	{}
@@ -18,13 +18,13 @@ namespace gdev {
 		return bool(ctx);
 	}
 	bool MessageContext::isConnected() const noexcept {
-		return port != -1;
+		return port() != -1;
 	}
 
 	void MessageContext::disconnect() {
 		if (isConnected()) {
 			socket.disconnect(address);
-			port = -1;
+			mport = -1;
 		}
 	}
 
@@ -36,11 +36,11 @@ namespace gdev {
 		if (_port < 1024 || _port > 65535) {
 			return false;
 		}
-		port = _port;
+		mport = _port;
 
 		// Create the TCP address, localhost loopback, custom port for id
 		address.resize(32, '\0');
-		int count = snprintf(address.data(), address.size(), "tcp://127.0.0.1:%d", port);
+		int count = snprintf(address.data(), address.size(), "tcp://127.0.0.1:%d", port());
 		assert(count > 0);
 
 		address.resize(count);
@@ -123,5 +123,9 @@ namespace gdev {
 		else {
 			return false;
 		}
+	}
+
+	int MessageContext::port() const noexcept {
+		return mport;
 	}
 }

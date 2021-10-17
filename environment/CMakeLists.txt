@@ -3,6 +3,8 @@
 # The static implementation for export
 add_library(gdev-environment SHARED
 	"src/EnvironmentNode.cpp"
+	"src/EnvironmentNodePrint.cpp"
+	"src/EnvironmentNodeDefine.cpp"
 	"src/gdnlibrary.cpp"
 	"src/GodotConversions.cpp"
 )

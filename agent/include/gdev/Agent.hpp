@@ -1,5 +1,7 @@
 #pragma once
 #include <vector>
+#include <filesystem>
+#include <cinttypes>
 
 #include <gdev/SpaceDef.hpp>
 #include <gdev/ValueDef.hpp>
@@ -28,11 +30,26 @@ namespace gdev {
 	*/
 	class Agent {
 	public:
+		Agent();
+		Agent(Agent &&) noexcept = default;
+
 		// The space of all actions
 		const SpaceDef& actionSpace() const noexcept;
 
 		// The space of all observations
 		const SpaceDef& observationSpace() const noexcept;
+		
+		// Attempt to run the godot executable (name passed as the 'godot' param)
+		// using the project at specified with the 'projectDir' param.
+		// Creates 'count' instances of the environment.
+		bool createEnvironment(const std::filesystem::path& godot, const std::filesystem::path& projectDir, int count);
+
+		// Returns true if the environment has been created already.
+		bool hasEnvironment() const noexcept;
+
+		// Returns the number of active environment instances.
+		int numInstances() const noexcept;
+
 
 		// Returns a reference to the most recent observation from an environment instance.
 		const Space& observation(int index) const;
@@ -46,15 +63,11 @@ namespace gdev {
 
 		// Reset the environment for another (or first) training session, get the initial observation.
 		Step reset(int index);
-
-		// Returns the number of active environment instances.
-		int numEnvironments() const noexcept;
-
-
 	private:
 		SpaceDef acSpace, obSpace;
 		gdev::MessageContext mcontext;
 
-		std::vector<Space> observations;		
+		std::vector<uint8_t> buffer;
+		std::vector<Space> observations;
 	};
 }

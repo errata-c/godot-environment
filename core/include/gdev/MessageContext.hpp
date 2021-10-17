@@ -26,8 +26,7 @@ namespace gdev {
 
 		bool isValid() const noexcept;
 		bool isConnected() const noexcept;
-
-		// Address must be between 1 and 255
+		
 		bool initialize(int _port);
 		void disconnect();
 
@@ -39,9 +38,11 @@ namespace gdev {
 
 		// Check for a ping reply.
 		bool checkPing();
+
+		int port() const noexcept;
 	private:
 		Com type;
-		int port;
+		int mport;
 		std::string address;
 
 		zmq::context_t ctx;

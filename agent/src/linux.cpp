@@ -12,29 +12,16 @@
 static void childHandler(int sig) {}
 
 namespace gdev {
-	bool exec(const std::filesystem::path& godotExe, const std::filesystem::path& projectDir, int port) {
+	bool exec(const std::filesystem::path& godotExe, const std::vector<std::string> & args) {
 		namespace fs = std::filesystem;
 
-		fs::file_status fstat = fs::status(projectDir);
-		if (!fs::is_directory(fstat)) {
-			throw std::logic_error("Project directory passed into gdev::exec was not a valid directory!");
-		}
-
-		if (port < 1024 || port > 65535) {
-			throw std::logic_error("Port number passed into gdev::exec is not in the valid range of 1024 - 65535!");
-		}
-
 		std::string godot = godotExe.string();
-		std::string proj = projectDir.string();
-		std::string portArg = "--port=";
-		portArg += std::to_string(port);
 
-		std::array<char*, 4> args{
-			"--path",
-			proj.c_str(),
-			portArg.c_str(),
-			nullptr // MUST BE NULL TERMINATED, c functions are barbaric
-		};
+		// +1, because it needs to be null terminated
+		std::vector<const char *> cargs(args.size()+1, nullptr);
+		for (std::size_t i = 0; i < args.size(); ++i) {
+			cargs[i] = args[i].c_str();
+		}
 
 		// Setup the signal so we don't have to do anything special to terminate the child processes.
 		struct sigaction sa;
@@ -45,7 +32,6 @@ namespace gdev {
 
 		sigaction(SIGCHLD, &sa, NULL);
 
-
 		// Branch onto a new thread.
 		pid_t pid = fork();
 		// pid will be zero in child process
@@ -53,7 +39,7 @@ namespace gdev {
 
 		if (pid == 0) {
 			// Execute the process
-			if (execvp(godot.c_str(), args.data()) == -1) {
+			if (execvp(godot.c_str(), cargs.data()) == -1) {
 				// This only returns if an error occurs
 				// At that point, just terminate the forked process.
 				

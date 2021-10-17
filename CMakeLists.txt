@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.19)
 
 project(GODOT_ENVIRONMENT
-LANGUAGES C CXX
-DESCRIPTION "A framework for building reinforcement learning environments using the Godot game engine."
+	LANGUAGES C CXX
+	DESCRIPTION "A framework for building reinforcement learning environments using the Godot game engine."
 )
 
 include(GNUInstallDirs)

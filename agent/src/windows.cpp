@@ -36,17 +36,8 @@ namespace gdev {
 	}
 	*/
 
-	bool exec(const std::filesystem::path& godotExe, const std::filesystem::path& projectDir, int port) {
+	bool exec(const std::filesystem::path& godotExe, const std::vector<std::string> & args) {
 		namespace fs = std::filesystem;
-
-		fs::file_status fstat = fs::status(projectDir);
-		if (!fs::is_directory(fstat)) {
-			throw std::logic_error("Project directory passed into gdev::exec was not a valid directory!");
-		}
-
-		if (port < 1024 || port > 65535) {
-			throw std::logic_error("Port number passed into gdev::exec is not in the valid range of 1024 - 65535!");
-		}
 
 		STARTUPINFO si;
 		PROCESS_INFORMATION pi;
@@ -55,7 +46,19 @@ namespace gdev {
 		si.cb = sizeof(si);
 		ZeroMemory(&pi, sizeof(pi));
 
-		std::string command = godotExe.string() + " --path " + projectDir.string() + " --port=" + std::to_string(port);
+		std::string command = godotExe.string();
+		{
+			std::size_t count = 0;
+			for (const std::string & arg : args) {
+				count += arg.size();
+			}
+			count += args.size();
+			command.reserve(command.size() + count);
+		}
+		for (const std::string & arg : args) {
+			command.append(1, ' ');
+			command.append(arg);
+		}
 
 		BOOL result = CreateProcessA(
 			command.c_str(),

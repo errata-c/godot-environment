@@ -6,7 +6,7 @@
 
 #### Environment:
 
-​	Instance of the Godot game engine running the actual environment itself. In Godot, it is implemented as the EnvironmentNode class. This class receives requests from the agent and generates signals for type of request.
+​	Instance of the Godot game engine running the actual environment itself. The environment must define the action space and the observation space, then register itself with the EnvironmentNode. It must also have the methods 'reset' and 'step'.
 
 ```python
 #This code is from the godot-environment-test repo.

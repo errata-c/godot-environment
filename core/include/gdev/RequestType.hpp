@@ -3,7 +3,7 @@
 namespace gdev {
 	enum class RequestType {
 		None,
-		SendDefs,
+		Initialize,
 		Reset,
 		Step,
 		Close,

@@ -1,6 +1,7 @@
 
 add_library(gdev-agent STATIC 
 	"src/Agent.cpp"
+	"src/platform_independent.cpp"
 	"$<$<PLATFORM_ID:Windows>:src/windows.cpp>"
 	"$<$<PLATFORM_ID:Linux>:src/linux.cpp>"
 )

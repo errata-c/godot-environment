@@ -1,8 +1,17 @@
 #include <gdev/Agent.hpp>
+#include <gdev/exec.hpp>
+
+#include <gdev/RequestType.hpp>
+
 
 #include <cassert>
+#include <random>
 
 namespace gdev {
+	Agent::Agent()
+		: mcontext(gdev::Com::Agent)
+	{}
+
 	const SpaceDef& Agent::actionSpace() const noexcept {
 		return acSpace;
 	}
@@ -10,7 +19,46 @@ namespace gdev {
 		return obSpace;
 	}
 
-	int Agent::numEnvironments() const noexcept {
+	bool Agent::createEnvironment(const std::filesystem::path& godot, const std::filesystem::path& scene, int count) {
+		assert(count >= 0);
+		assert(numInstances() == 0);
+
+		int port;
+		{
+			std::random_device rd;
+			std::uniform_int_distribution<> dist(portMin(), portMax());
+			std::mt19937 gen(rd());
+
+			port = dist(gen);
+		}
+
+		std::vector<std::string> args;
+		addSceneArgument(scene, args);
+		addPortArgument(port, args);
+
+		// Attempt to run the exectuable
+		bool result = exec(godot, args);
+		if (!result) {
+			return false;
+		}
+
+		// The initialize the message context
+		result = mcontext.initialize(port);
+		if (!result) {
+			return false;
+		}
+
+		// Send the initialize request to the environment
+
+
+		return false;
+	}
+
+	bool Agent::hasEnvironment() const noexcept {
+		return numInstances() != 0;
+	}
+
+	int Agent::numInstances() const noexcept {
 		return static_cast<int>(observations.size());
 	}
 
