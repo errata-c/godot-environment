@@ -11,26 +11,11 @@
 
 namespace godot {
 	/*
-	Node to describe and drive the runtime loop on the godot side of things.
-
-
-	Provide methods to define the Action space and the Observation space.
-	Provide methods to set observation values.
-	Get the command line arguments
-	Integrate message context, setup the request reply loop.
 
 	*/
 	class EnvironmentNode: public Node {
 		GODOT_CLASS(EnvironmentNode, Node)
 	public:
-		enum class State {
-			None, // No requests made yet.
-			Initialize, // The Agent has requested the action and observation space defs
-			Reset, // The Agent has requested a reset of the environment
-			Step, // The Agent has sent action data and requested stepping the environment
-			Close, // The Agent has requested the environment to close down.
-		};
-
 		static void _register_methods();
 
 		EnvironmentNode();
@@ -42,9 +27,9 @@ namespace godot {
 		gdev::SpaceDef & observationSpaceDef() noexcept;
 		const gdev::SpaceDef& observationSpaceDef() const noexcept;
 
-		// Define the action space.
+		// Define the action space via (name, value) pairs in a dictionary
 		void define_action_space(godot::Dictionary space);
-		// Define the observation space.
+		// Define the observation space via (name, value) pairs in a dictionary
 		void define_observation_space(godot::Dictionary space);
 
 		// Register the scene containing the environment, this is necessary to allow for instancing.
@@ -83,6 +68,7 @@ namespace godot {
 		// Called at a (supposedly) fixed rate
 		void _physics_process(float delta);
 
+		// Attempt to quit the application instance
 		void quit(int code);
 
 		struct Instance {
@@ -103,5 +89,7 @@ namespace godot {
 
 		int32_t currentIndex;
 		std::vector<Instance> instances;
+
+		void prepareInstances(int numInstances, const Ref<PackedScene> & scene);
 	};
 }

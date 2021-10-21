@@ -14,7 +14,26 @@
 #include <Variant.hpp>
 #include <ResourceLoader.hpp>
 
+#include <GridContainer.hpp>
+#include <Viewport.hpp>
+#include <ViewportContainer.hpp>
+#include <World.hpp>
+#include <World2D.hpp>
+
 namespace godot {
+	EnvironmentNode::Instance::Instance()
+		: node(nullptr)
+		, done(false)
+		, reward(0.f)
+	{}
+	EnvironmentNode::Instance::Instance(godot::Node* n)
+		: node(n)
+		, done(false)
+		, reward(0.f)
+	{}
+
+
+
 	EnvironmentNode::EnvironmentNode()
 		: mcontext(gdev::Com::Environment)
 		, currentIndex(0)
@@ -144,26 +163,63 @@ namespace godot {
 			return;
 		}
 
-		godot::Node * node = packed->instance();
+		prepareInstances(numInstances, packed);
+	}
 
-		// Make sure we have the right methods
-		if (!node->has_method("step")) {
-			godot::String errorMsg = godot::String("Node '{0}' does not have a 'step' method!").format(node->get_name());
-			Godot::print_error(errorMsg,
-				"EnvironmentNode::register_scene", __FILE__, __LINE__);
-			quit(-1);
-			return;
+	void EnvironmentNode::prepareInstances(int numInstances, const Ref<PackedScene>& packed) {
+		// Determine the number of columns to use when splitting the screen.
+		int columns = std::sqrt(numInstances);
+		Vector2 scaleFactor;
+		{
+			float factor = 1.f / float(columns);
+			scaleFactor = Vector2(factor, factor);
 		}
-		if (!node->has_method("reset")) {
-			godot::String errorMsg = godot::String("Node '{0}' does not have a 'reset' method!").format(node->get_name());
-			Godot::print_error(errorMsg,
-				"EnvironmentNode::register_scene", __FILE__, __LINE__);
-			quit(-1);
-			return;
+		
+		// We create a grid container to organize the viewports
+		GridContainer * grid = GridContainer::_new();
+		grid->set_columns(columns);
+		grid->set_anchors_preset(Control::PRESET_WIDE);
+		add_child(grid);
+
+		for (int i = 0; i < numInstances; ++i) {
+			ViewportContainer * viewBox = ViewportContainer::_new();
+			Viewport* view = Viewport::_new();
+			viewBox->set_stretch(true);
+			viewBox->set_h_size_flags(viewBox->get_h_size_flags() | Control::SIZE_EXPAND);
+			viewBox->set_v_size_flags(viewBox->get_v_size_flags() | Control::SIZE_EXPAND);
+
+			// Each viewport needs its own world to prevent conflicts and interaction between the instances
+			view->set_world(Ref<World>(World::_new()));
+			view->set_world_2d(Ref<World2D>(World2D::_new()));
+			view->set_use_own_world(true);
+			view->set_global_canvas_transform(view->get_global_canvas_transform().scaled(scaleFactor));
+
+			grid->add_child(viewBox);
+			viewBox->add_child(view);
+
+			godot::Node* node = packed->instance();
+
+			// We need to first check that the node follows the expected interface, but only once
+			if (i == 0) {
+				if (!node->has_method("step")) {
+					godot::String errorMsg = godot::String("Node '{0}' does not have a 'step' method!").format(node->get_name());
+					Godot::print_error(errorMsg,
+						"EnvironmentNode::register_scene", __FILE__, __LINE__);
+					quit(-1);
+					return;
+				}
+				if (!node->has_method("reset")) {
+					godot::String errorMsg = godot::String("Node '{0}' does not have a 'reset' method!").format(node->get_name());
+					Godot::print_error(errorMsg,
+						"EnvironmentNode::register_scene", __FILE__, __LINE__);
+					quit(-1);
+					return;
+				}
+			}
+			
+			view->add_child(node);
+			instances.emplace_back(node);
 		}
-
-		// Determine what kind of scene we are in.
-
 	}
 
 	void EnvironmentNode::_init() {
