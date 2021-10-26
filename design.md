@@ -2,15 +2,18 @@
 
 #### Agent:
 
-​	Creates an instance of the environment and communicates with it in a request reply loop. The Agent class must first connect to the actual environment instance that was created, then it receives data describing the action space and the observation space. To interact with Godot, the agent instances the action space, and fills it with the desired actions for the current time step. The Space object is then passed over using the `Step step(const Space& action)` method.
+​	Creates an instance of the environment and communicates with it in a request reply loop. The Agent class must first connect to the actual environment instance that was created, then it receives data describing the action space and the observation space. It follows the form setup by openai gym.
+
+```
+```
+
+
 
 #### Environment:
 
 ​	Instance of the Godot game engine running the actual environment itself. The environment must define the action space and the observation space, then register itself with the EnvironmentNode. It must also have the methods 'reset' and 'step'.
 
 ```python
-#This code is from the godot-environment-test repo.
-
 var Env = get_node("EnvironmentNode")
 
 # The reward value for the current step. Set this every step to drive the learning process.
@@ -63,7 +66,7 @@ Env.set_observation("x", 0.0)
 
 ## Todo:
 
-- [ ] Prepare for creating multiple instances of an environment for faster training
-- [ ] Decide how the Environment class will interact with the agent
+- [x] Prepare for creating multiple instances of an environment for faster training
+- [x] Decide how the Environment class will interact with the agent
 - [ ] Test the exec function
 

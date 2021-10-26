@@ -36,7 +36,7 @@ namespace gdev {
 	}
 	*/
 
-	bool exec(const std::filesystem::path& godotExe, const std::vector<std::string> & args) {
+	bool exec(const std::filesystem::path& godotExe, const std::filesystem::path& workingDir, const std::vector<std::string> & args) {
 		namespace fs = std::filesystem;
 
 		STARTUPINFO si;
@@ -47,6 +47,7 @@ namespace gdev {
 		ZeroMemory(&pi, sizeof(pi));
 
 		std::string command = godotExe.string();
+		std::string working = workingDir.string();
 		{
 			std::size_t count = 0;
 			for (const std::string & arg : args) {
@@ -61,14 +62,14 @@ namespace gdev {
 		}
 
 		BOOL result = CreateProcessA(
-			command.c_str(),
 			NULL,
+			command.data(),
 			NULL,
 			NULL,
 			true,
 			0,
 			NULL,
-			NULL,
+			working.c_str(),
 			&si,
 			&pi
 		);

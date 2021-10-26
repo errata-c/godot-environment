@@ -1,0 +1,39 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://HumanControl.gd" type="Script" id=1]
+[ext_resource path="res://fonts/Roboto-Regular.ttf" type="DynamicFontData" id=2]
+
+[sub_resource type="DynamicFont" id=1]
+size = 46
+font_data = ExtResource( 2 )
+
+[sub_resource type="DynamicFont" id=2]
+size = 46
+font_data = ExtResource( 2 )
+
+[node name="HumanControl" type="Node"]
+script = ExtResource( 1 )
+
+[node name="RewardLabel" type="Label" parent="."]
+margin_left = 50.0
+margin_top = 39.0
+margin_right = 282.0
+margin_bottom = 97.0
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "reward: 0.0"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="DoneLabel" type="Label" parent="."]
+margin_left = 49.0
+margin_top = 135.0
+margin_right = 307.0
+margin_bottom = 198.0
+custom_fonts/font = SubResource( 2 )
+custom_colors/font_color = Color( 0, 0, 0, 1 )
+text = "done: false"
+__meta__ = {
+"_edit_use_anchors_": false
+}

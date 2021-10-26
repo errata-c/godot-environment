@@ -26,12 +26,6 @@ namespace gdev {
 			throw std::logic_error(errorMsg);
 		}
 
-		fs::file_status fstat = fs::status(scene);
-		if (!fs::is_regular_file(fstat)) {
-			std::string errorMsg = "Scene file '" + scene.string() + "' is not a valid godot scene file!";
-			throw std::logic_error(errorMsg);
-		}
-
 		args.push_back(scene.string());
 	}
 	void addFixedFPSArgument(int fps, std::vector<std::string>& args) {
