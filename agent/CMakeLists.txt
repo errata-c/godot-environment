@@ -13,5 +13,8 @@ target_include_directories(gdev-agent PUBLIC
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
 )
 add_library(gdev::agent ALIAS gdev-agent)
+set_target_properties(gdev-agent PROPERTIES EXPORT_NAME agent)
 
-add_subdirectory("test")
+if(GODOT_ENVIRONMENT_BUILD_TESTS)
+	add_subdirectory("test")
+endif()
