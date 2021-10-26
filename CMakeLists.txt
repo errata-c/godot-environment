@@ -7,7 +7,7 @@ project(GODOT_ENVIRONMENT
 )
 
 option(GODOT_ENVIRONMENT_BUILD_TESTS "Build the tests for godot-environment" OFF)
-set(GODOT_ENVIRONMENT_CONFIG_DIR "share/godot-environmnet" CACHE STRING "The relative destination of the configuration files")
+set(GODOT_ENVIRONMENT_CONFIG_DIR "share/godot-environment" CACHE STRING "The relative destination of the configuration files")
 
 include(GNUInstallDirs)
 include(FetchContent)
@@ -59,8 +59,8 @@ install(TARGETS gdev-core gdev-agent
 )
 
 install_package(
-	NAME "gdev-environment"
-	NAMESPACE "gdev"
+	NAME "godot-environment"
+	NAMESPACE "gdev::"
 	EXPORT "gdev-export"
 	VERSION "${GODOT_ENVIRONMENT_VERSION}"
 	COMPATIBILITY "SameMajorVersion"
