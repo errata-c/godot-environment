@@ -55,6 +55,8 @@ namespace gdev {
 		const_iterator begin() const;
 		const_iterator end() const;
 
+		bool operator==(const Space& other) const noexcept;
+		bool operator!=(const Space& other) const noexcept;
 	private:
 		map_t map;
 		container_t data;

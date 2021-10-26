@@ -2,7 +2,7 @@
 #pragma warning(disable: 26812)
 #endif
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <gdev/SpaceDef.hpp>
 
 using namespace gdev;

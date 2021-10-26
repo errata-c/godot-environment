@@ -10,15 +10,7 @@ namespace gdev {
 	class Space;
 	class SpaceDef;
 
-	enum class SerializedType: uint8_t {
-		Value = 0,
-		ValueDef,
-		Space,
-		SpaceDef,
-	};
-
 	void serialize(RequestType type, std::vector<uint8_t>& buffer);
-	void serialize(SerializedType type, std::vector<uint8_t>& buffer);
 	void serialize(ValueType type, std::vector<uint8_t>& buffer);
 
 	void serialize(const gdev::Value& value, std::vector<uint8_t>& buffer);
@@ -30,7 +22,6 @@ namespace gdev {
 	void serializeStep(const gdev::Space& observation, float reward, bool done, std::vector<uint8_t>& buffer);
 
 	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, RequestType& value);
-	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, SerializedType& value);
 	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, ValueType& value);
 
 	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, Value& value);

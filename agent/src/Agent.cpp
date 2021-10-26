@@ -52,20 +52,24 @@ namespace gdev {
 
 		// Send the initialize request to the environment
 		buffer.clear();
-		RequestType req = RequestType::Initialize;
 		int32_t instances = count;
-		serialize(req, buffer);
+		serialize(RequestType::Initialize, buffer);
 		ez::serialize::i32(instances, buffer);
 
 		if (!mcontext.send(buffer)) {
 			return false;
 		}
-		buffer.clear();
 
+		buffer.clear();
 		if (!mcontext.recv(buffer)) {
 			return false;
 		}
 		deserializeDefs(buffer.data(), buffer.data() + buffer.size(), acSpace, obSpace);
+
+		observations.clear();
+		for (int i = 0; i < count; ++i) {
+			observations.emplace_back();
+		}
 
 		return true;
 	}
@@ -86,8 +90,7 @@ namespace gdev {
 
 	void Agent::close() {
 		buffer.clear();
-		RequestType req = RequestType::Close;
-		serialize(req, buffer);
+		serialize(RequestType::Close, buffer);
 		if (!mcontext.send(buffer)) {
 			throw std::logic_error("Failed to send close command in gdev::Agent::close!");
 		}
@@ -98,11 +101,12 @@ namespace gdev {
 			throw std::out_of_range("Call to gdev::Agent::reset with an invalid index!");
 		}
 
-		Space & obs = observations[index];
+		buffer.clear();
+		serialize(RequestType::Reset, buffer);
 
+		Space & obs = observations[index];
 		{
 			int32_t i = index;
-			buffer.clear();
 			ez::serialize::i32(i, buffer);
 			if (!mcontext.send(buffer)) {
 				throw std::logic_error("Failed to send reset command in gdev::Agent::reset!");
@@ -125,11 +129,13 @@ namespace gdev {
 			throw std::out_of_range("Call to gdev::Agent::step with an invalid index!");
 		}
 
+		buffer.clear();
+		serialize(RequestType::Step, buffer);
+
 		Space& obs = observations[index];
 
 		{
 			int32_t i = index;
-			buffer.clear();
 			ez::serialize::i32(i, buffer);
 			serialize(action, buffer);
 			if (!mcontext.send(buffer)) {

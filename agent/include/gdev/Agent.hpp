@@ -7,16 +7,11 @@
 #include <gdev/ValueDef.hpp>
 #include <gdev/Space.hpp>
 #include <gdev/Value.hpp>
+#include <gdev/Step.hpp>
 
 #include <gdev/MessageContext.hpp>
 
 namespace gdev {
-	struct Step {
-		const Space& observation;
-		double reward;
-		bool done;
-	};
-
 	/*
 	This class is the interface between the RL Agent you create in your own code base, and the godot environment.
 	It will attempt to connect to a running instance of an environment, and allow the agent to interact with it.

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <chrono>
+#include <random>
 
 #include <gdev/Agent.hpp>
 #include "config.hpp"
@@ -39,12 +40,32 @@ int main() {
 		std::cerr << "Agent is reporting the incorrect number of instances!\n";
 		return -1;
 	}
+	auto startTime = steady_clock::now();
+
+	gdev::Space action = agent.actionSpace().instance();
+	action["force"].asReal() = 0.f;
+
+
+	std::mt19937 gen(std::random_device{}());
+	std::uniform_real_distribution<> dist(-1.f, 1.f);
 	
-	auto time = steady_clock::now();
+	// Using std::endl to flush the text manually, otherwise it doesn't always print until after the loop
+	std::cout << "\nBeginning the RL training loop" << std::endl;
 
 	// Run the main loop for the control
 	gdev::Step step = agent.reset(0);
-	
+	std::cout << "Received the first step data from the environment" << std::endl;
+
+
+	std::size_t cycles = 0;
+	while ((steady_clock::now() - startTime) < chrono::seconds(20)) {
+		action["force"].asReal() = dist(gen);
+		step = agent.step(0, action);
+		++cycles;
+	}
+	agent.close();
+
+	std::cout << "Ended the RL training loop after " << cycles << " cycles." << std::endl;
 
 	return 0;
 }

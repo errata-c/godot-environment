@@ -144,6 +144,25 @@ namespace gdev {
 	int ValueDef::dim(int index) const noexcept {
 		return mdims[index];
 	}
+
+	bool ValueDef::operator==(const ValueDef& other) const noexcept {
+		if (type() != other.type()) {
+			return false;
+		}
+		if (dims() != other.dims()) {
+			return false;
+		}
+		return true;
+	}
+	bool ValueDef::operator!=(const ValueDef& other) const noexcept {
+		if (type() != other.type()) {
+			return true;
+		}
+		if (dims() != other.dims()) {
+			return true;
+		}
+		return false;
+	}
 	
 	Value ValueDef::instance() const {
 		switch (type()) {

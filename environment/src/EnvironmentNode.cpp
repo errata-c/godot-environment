@@ -32,8 +32,6 @@ namespace godot {
 		, reward(0.f)
 	{}
 
-
-
 	EnvironmentNode::EnvironmentNode()
 		: mcontext(gdev::Com::Environment)
 		, currentIndex(0)
@@ -220,6 +218,10 @@ namespace godot {
 			view->add_child(node);
 			instances.emplace_back(node);
 		}
+
+		for (auto & inst : instances) {
+			inst.observation = observationSpaceDef().instance();
+		}
 	}
 
 	void EnvironmentNode::_init() {
@@ -303,9 +305,14 @@ namespace godot {
 				data = gdev::deserialize(data, end, req);
 
 				switch (req) {
-				case gdev::RequestType::Initialize:
+				default: {
+					godot::String errorMsg = "Received an invalid value of '{0}' for the request type!";
+					Godot::print_error(errorMsg.format(godot::Array::make(static_cast<int>(req))), "EnvironmentNode::reply", __FILE__, __LINE__);
+					quit(-1);
 					break;
+				}
 				case gdev::RequestType::Close: {
+					Godot::print("Received close command, ending the training session!");
 					quit(0);
 					break;
 				}
@@ -361,8 +368,6 @@ namespace godot {
 		}
 	}
 
-
-
 	godot::Variant EnvironmentNode::get_action(godot::String name) {
 		godot::CharString cname = name.ascii();
 
@@ -370,7 +375,8 @@ namespace godot {
 		
 		auto it = action.find(std::string_view(cname.get_data(), cname.length()));
 		if (it == action.end()) {
-			Godot::print_error("Failed to find an action value under the requested name!",
+			godot::String msg{"Failed to find an action value under the name '{0}'!"};
+			Godot::print_error(msg.format(godot::Array::make(name)),
 				"EnvironmentNode::get_action",
 				__FILE__,
 				__LINE__);
@@ -386,7 +392,8 @@ namespace godot {
 
 		auto it = observation.find(std::string_view(cname.get_data(), cname.length()));
 		if (it == observation.end()) {
-			Godot::print_error("Failed to find an observation value under the requested name!", 
+			godot::String msg{ "Failed to find an observation value under the name '{0}'!" };
+			Godot::print_error(msg.format(godot::Array::make(name)), 
 			"EnvironmentNode::set_observation",
 			__FILE__,
 			__LINE__);
