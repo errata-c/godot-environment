@@ -40,9 +40,9 @@ namespace gdev {
 		const SpaceDef& observationSpace() const noexcept;
 		
 		// Attempt to run the godot executable (name passed as the 'godot' param)
-		// using the project at specified with the 'projectDir' param.
+		// using the scene specified
 		// Creates 'count' instances of the environment.
-		bool createEnvironment(const std::filesystem::path& godot, const std::filesystem::path& projectDir, int count);
+		bool createEnvironment(const std::filesystem::path& godot, const std::filesystem::path& scene, int count);
 
 		// Returns true if the environment has been created already.
 		bool hasEnvironment() const noexcept;
