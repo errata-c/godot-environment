@@ -1,15 +1,15 @@
 [gd_scene load_steps=6 format=2]
 
-[ext_resource path="res://sprites/circle.svg" type="Texture" id=1]
-[ext_resource path="res://sprites/circle_white.svg" type="Texture" id=2]
-[ext_resource path="res://sprites/square.svg" type="Texture" id=3]
+[ext_resource path="res://sprites/pendulum_pin.svg" type="Texture" id=1]
+[ext_resource path="res://sprites/pendulum_end_cap.svg" type="Texture" id=2]
+[ext_resource path="res://sprites/pendulum_arm.svg" type="Texture" id=3]
 
 [sub_resource type="CapsuleShape2D" id=1]
-radius = 39.7185
-height = 179.151
+radius = 45.0
+height = 180.0
 
 [sub_resource type="CircleShape2D" id=2]
-radius = 43.6785
+radius = 22.0618
 
 [node name="Pendulum" type="Node2D"]
 
@@ -25,17 +25,17 @@ angular_velocity = 20.0
 angular_damp = 0.0
 
 [node name="End" type="Sprite" parent="Arm"]
-scale = Vector2( 0.310223, 0.310223 )
-texture = ExtResource( 1 )
+modulate = Color( 0, 0, 0, 1 )
+texture = ExtResource( 2 )
 
 [node name="Start" type="Sprite" parent="Arm"]
+modulate = Color( 0, 0, 0, 1 )
 position = Vector2( 0, -180 )
-scale = Vector2( 0.310223, 0.310223 )
-texture = ExtResource( 1 )
+texture = ExtResource( 2 )
 
 [node name="Arm" type="Sprite" parent="Arm"]
+modulate = Color( 0, 0, 0, 1 )
 position = Vector2( 0, -90 )
-scale = Vector2( 0.310223, 0.702947 )
 texture = ExtResource( 3 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Arm"]
@@ -44,12 +44,10 @@ shape = SubResource( 1 )
 
 [node name="Pin" type="StaticBody2D" parent="."]
 position = Vector2( 500, 350 )
-scale = Vector2( 0.511385, 0.511385 )
 
 [node name="Pivot" type="Sprite" parent="Pin"]
 modulate = Color( 0.498039, 0.882353, 0.47451, 1 )
-scale = Vector2( 0.344692, 0.344692 )
-texture = ExtResource( 2 )
+texture = ExtResource( 1 )
 __meta__ = {
 "_edit_lock_": true
 }
