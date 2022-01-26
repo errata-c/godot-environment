@@ -1,0 +1,9 @@
+bin
+.import
+*.import
+.vs
+build
+out
+CMakeSettings.json
+CMakeUserPresets.json
+.idea

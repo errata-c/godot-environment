@@ -24,7 +24,9 @@ target_link_libraries(gdev-core PUBLIC
 target_compile_options(gdev-core PUBLIC
 	"$<$<CXX_COMPILER_ID:MSVC>:/wd26812>" # Stop msvc from annoying us with the unscoped enum warning.
 )
-
+set_target_properties(gdev-core PROPERTIES EXPORT_NAME core)
 add_library(gdev::core ALIAS gdev-core)
 
-add_subdirectory("test")
+if(GODOT_ENVIRONMENT_BUILD_TESTS)
+	add_subdirectory("test")
+endif()

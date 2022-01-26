@@ -1,20 +1,17 @@
 #pragma once
 #include <vector>
+#include <filesystem>
+#include <cinttypes>
 
 #include <gdev/SpaceDef.hpp>
 #include <gdev/ValueDef.hpp>
 #include <gdev/Space.hpp>
 #include <gdev/Value.hpp>
+#include <gdev/Step.hpp>
 
 #include <gdev/MessageContext.hpp>
 
 namespace gdev {
-	struct Step {
-		const Space& observation;
-		double reward;
-		bool done;
-	};
-
 	/*
 	This class is the interface between the RL Agent you create in your own code base, and the godot environment.
 	It will attempt to connect to a running instance of an environment, and allow the agent to interact with it.
@@ -28,11 +25,25 @@ namespace gdev {
 	*/
 	class Agent {
 	public:
+		Agent();
+		Agent(Agent &&) noexcept = default;
+
 		// The space of all actions
 		const SpaceDef& actionSpace() const noexcept;
 
 		// The space of all observations
 		const SpaceDef& observationSpace() const noexcept;
+		
+		// Attempt to run the godot executable (name passed as the 'godot' param)
+		// using the scene specified
+		// Creates 'count' instances of the environment.
+		bool createEnvironment(const std::filesystem::path& godot, const std::filesystem::path& projectDir, const std::filesystem::path & sceneFile, int count);
+
+		// Returns true if the environment has been created already.
+		bool hasEnvironment() const noexcept;
+
+		// Returns the number of active environment instances.
+		int numInstances() const noexcept;
 
 		// Returns a reference to the most recent observation from an environment instance.
 		const Space& observation(int index) const;
@@ -46,15 +57,11 @@ namespace gdev {
 
 		// Reset the environment for another (or first) training session, get the initial observation.
 		Step reset(int index);
-
-		// Returns the number of active environment instances.
-		int numEnvironments() const noexcept;
-
-
 	private:
 		SpaceDef acSpace, obSpace;
 		gdev::MessageContext mcontext;
 
-		std::vector<Space> observations;		
+		std::vector<uint8_t> buffer;
+		std::vector<Space> observations;
 	};
 }

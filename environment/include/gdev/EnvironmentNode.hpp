@@ -2,6 +2,7 @@
 #include <Godot.hpp>
 #include <Node.hpp>
 #include <String.hpp>
+#include <PackedScene.hpp>
 
 #include <gdev/SpaceDef.hpp>
 #include <gdev/Space.hpp>
@@ -10,26 +11,11 @@
 
 namespace godot {
 	/*
-	Node to describe and drive the runtime loop on the godot side of things.
-
-
-	Provide methods to define the Action space and the Observation space.
-	Provide methods to set observation values.
-	Get the command line arguments
-	Integrate message context, setup the request reply loop.
 
 	*/
 	class EnvironmentNode: public Node {
 		GODOT_CLASS(EnvironmentNode, Node)
 	public:
-		enum class State {
-			None, // No requests made yet.
-			SendDefs, // The Agent has requested the action and observation space defs
-			Reset, // The Agent has requested a reset of the environment
-			Step, // The Agent has sent action data and requested stepping the environment
-			Close, // The Agent has requested the environment to close down.
-		};
-
 		static void _register_methods();
 
 		EnvironmentNode();
@@ -41,22 +27,18 @@ namespace godot {
 		gdev::SpaceDef & observationSpaceDef() noexcept;
 		const gdev::SpaceDef& observationSpaceDef() const noexcept;
 
-		void reply();
+		// Define the action space via (name, value) pairs in a dictionary
+		void define_action_space(godot::Dictionary space);
+		// Define the observation space via (name, value) pairs in a dictionary
+		void define_observation_space(godot::Dictionary space);
 
-		bool reset_requested() const noexcept;
-		bool step_requested() const noexcept;
-		bool send_defs_requested() const noexcept;
-		bool close_requested() const noexcept;
+		// Register the scene containing the environment, this is necessary to allow for instancing.
+		void register_scene(godot::String scene);
 
 		// Get the value of the done flag, used to signal that the environment has hit some kind of end condition.
 		bool get_done() const noexcept;
 		// Set the value of the done flag, used to signal that the environment has hit some kind of end condition.
 		void set_done(bool val) noexcept;
-
-		// Define the action space.
-		void define_action_space(godot::Dictionary space);
-		// Define the observation space.
-		void define_observation_space(godot::Dictionary space);
 
 		// Set the reward for the current step of the training.
 		void set_reward(double val);
@@ -80,19 +62,34 @@ namespace godot {
 		// This function is automatically registered! It must exist for every class you make with godot.
 		void _init();
 
+		// Called once the node has been created, and its children have been initialized.
 		void _ready();
 
+		// Called at a (supposedly) fixed rate
 		void _physics_process(float delta);
+
+		// Attempt to quit the application instance
+		void quit(int code);
+
+		struct Instance {
+			Instance();
+			Instance(godot::Node * n);
+
+			godot::Node * node;
+			gdev::Space observation, action;
+
+			bool done;
+			double reward;
+		};
 	private:
 		gdev::MessageContext mcontext;
-
 		std::vector<std::uint8_t> buffer;
-
+		
 		gdev::SpaceDef acSpace, obSpace;
-		gdev::Space observation, action;
 
-		State state;
-		bool done;
-		double reward;
+		int32_t currentIndex;
+		std::vector<Instance> instances;
+
+		void prepareInstances(int numInstances, const Ref<PackedScene> & scene);
 	};
 }

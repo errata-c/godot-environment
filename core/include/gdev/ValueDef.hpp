@@ -63,6 +63,9 @@ namespace gdev {
 		const dim_t& dims() const noexcept;
 		int dim(int index) const noexcept;
 
+		bool operator==(const ValueDef& other) const noexcept;
+		bool operator!=(const ValueDef& other) const noexcept;
+
 		Value instance() const;
 	private:
 		ValueDef(ValueType _type, dim_t _dims, double _low, double _high) noexcept;

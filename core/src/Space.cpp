@@ -137,4 +137,35 @@ namespace gdev {
 	const_iterator Space::end() const {
 		return data.end();
 	}
+
+	bool Space::operator==(const Space& other) const noexcept {
+		if (size() != other.size()) {
+			return false;
+		}
+		for (const auto & elem : *this) {
+			auto it = other.find(elem.name);
+			if (it == other.end()) {
+				return false;
+			}
+			else if(it->value != elem.value) {
+				return false;
+			}
+		}
+		return true;
+	}
+	bool Space::operator!=(const Space& other) const noexcept {
+		if (size() != other.size()) {
+			return true;
+		}
+		for (const auto& elem : *this) {
+			auto it = other.find(elem.name);
+			if (it == other.end()) {
+				return true;
+			}
+			else if (it->value != elem.value) {
+				return true;
+			}
+		}
+		return false;
+	}
 }

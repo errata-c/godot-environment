@@ -3,6 +3,8 @@
 # The static implementation for export
 add_library(gdev-environment SHARED
 	"src/EnvironmentNode.cpp"
+	"src/EnvironmentNodePrint.cpp"
+	"src/EnvironmentNodeDefine.cpp"
 	"src/gdnlibrary.cpp"
 	"src/GodotConversions.cpp"
 )
@@ -14,7 +16,7 @@ target_include_directories(gdev-environment PRIVATE
 	"$<INSTALL_INTERFACE:include>"
 	"$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/include>"
 )
-set_property(TARGET gdev-environment PROPERTY OUTPUT_NAME "gdev")
+set_property(TARGET gdev-environment PROPERTY OUTPUT_NAME "gdev_environment")
 add_library(gdev::environment ALIAS gdev-environment)
 
 
@@ -25,5 +27,5 @@ install_gdnlib(
 	CLASSES "EnvironmentNode"
 	COMPONENT GDNLIB
 	DEPENDENCIES libzmq
-	#EXCLUDE_FROM_ALL
+	EXCLUDE_FROM_ALL
 )
