@@ -11,8 +11,14 @@ namespace gdev {
 		Environment,
 	};
 
-	// This class will handle all the specifics surrounding zeromq messaging.
-	// Allow for transmitting data between the Godot engine and the Agent executable.
+	/*
+	Class that handles the connection between the Agent and the Environment.
+	Provides only the bare minimum capabilities, only allows sending and receiving byte buffers.
+	This puts the responsibility of interpreting the data on the users of this class.
+
+	This class operates in a strict request-reply loop, with the Agent sending the requests,
+	and the Environment sending the replies.
+	*/
 	class MessageContext {
 	public:
 		MessageContext(const MessageContext &) = delete;
@@ -30,7 +36,10 @@ namespace gdev {
 		bool initialize(int _port);
 		void disconnect();
 
+		// Attempt to send a buffer of data to the other context.
 		bool send(const std::vector<uint8_t> & buffer);
+
+		// Attempt to receive a buffer of data from the other context.
 		bool recv(std::vector<uint8_t> & buffer);
 
 		// Send a ping message to check if the server is ready.

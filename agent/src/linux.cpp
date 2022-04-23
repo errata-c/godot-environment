@@ -12,6 +12,8 @@
 static void childHandler(int sig) {}
 
 namespace gdev {
+
+	// This implementation has to be tested.
 	bool exec(const std::filesystem::path& godotExe, const std::vector<std::string> & args) {
 		namespace fs = std::filesystem;
 
@@ -41,10 +43,10 @@ namespace gdev {
 			// Execute the process
 			if (execvp(godot.c_str(), cargs.data()) == -1) {
 				// This only returns if an error occurs
-				// At that point, just terminate the forked process.
 				
-				std::terminate();
+				
 			}
+			std::terminate();
 		}
 		else {
 			// Parent process should probably wait a bit to see if the child process is actually running.

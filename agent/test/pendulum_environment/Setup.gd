@@ -23,6 +23,11 @@ func _ready():
 			"type": "real",
 			"range": [-1, 1],
 			"dims": [1,1,1,1]
+		},
+		"angular_velocity": {
+			"type": "real",
+			"range": [-8, 8],
+			"dims": [1,1,1,1]
 		}
 	}
 	
@@ -35,4 +40,4 @@ func _ready():
 	print("\nObservations:")
 	$Env.print_observation_space_def()
 	
-	$Env.register_scene("res://PendulumEnv.tscn")
+	$Env.register_scene("res://pendulum/Pendulum.tscn")

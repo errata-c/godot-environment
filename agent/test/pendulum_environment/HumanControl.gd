@@ -10,15 +10,16 @@ var node
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	node = load("PendulumEnv.tscn").instance()
+	node = load("pendulum/Pendulum.tscn").instance()
 	add_child(node)
 	
 	node.reset(self)
 
 func _physics_process(delta):
 	node.step(self)
-	$RewardLabel.text = "reward: {0}".format([reward])
+	$RewardLabel.text = "reward: %.2f" % reward
 	$DoneLabel.text = "done: {0}".format([done])
+	
 
 var leftHeld = false
 var rightHeld = false
@@ -35,14 +36,16 @@ func _input(event):
 	
 	var force = 0.0
 	if leftHeld:
-		force += 0.125
+		force += 1.0
 	elif rightHeld:
-		force -= 0.125
+		force -= 1.0
 	
 	actions["force"] = force
 
 func set_observation(name, value):
-	pass
+	if name == "angular_velocity":
+		$VelocityLabel.text = "velocity: %.2f" % value
+		pass
 
 func get_action(name):
 	return actions[name]

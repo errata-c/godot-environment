@@ -57,6 +57,7 @@ namespace gdev {
 
 	// system specific function to run the godot executable.
 	// You must pass the path to the godot executable, the directory of the project, and the port to use for com.
+	// The exact implementation for this function depends on the operating system this project will be compiled for.
 	bool exec(
 		const std::filesystem::path& godot,
 		const std::filesystem::path& workingDir,

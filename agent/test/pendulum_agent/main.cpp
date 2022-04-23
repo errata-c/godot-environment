@@ -40,7 +40,6 @@ int main() {
 		std::cerr << "Agent is reporting the incorrect number of instances!\n";
 		return -1;
 	}
-	auto startTime = steady_clock::now();
 
 	gdev::Space action = agent.actionSpace().instance();
 	action["force"].asReal() = 0.f;
@@ -56,10 +55,11 @@ int main() {
 	gdev::Step step = agent.reset(0);
 	std::cout << "Received the first step data from the environment" << std::endl;
 
+	auto startTime = steady_clock::now();
 
 	std::size_t cycles = 0;
-	while ((steady_clock::now() - startTime) < chrono::seconds(20)) {
-		action["force"].asReal() = dist(gen);
+	while ((steady_clock::now() - startTime) < chrono::seconds(10)) {
+		action["force"].asReal() = dist(gen)* 0.4f;
 		step = agent.step(0, action);
 		++cycles;
 	}
