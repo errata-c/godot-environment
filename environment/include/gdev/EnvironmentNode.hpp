@@ -83,7 +83,7 @@ namespace godot {
 		};
 	private:
 		gdev::MessageContext mcontext;
-		std::vector<std::uint8_t> buffer;
+		std::string buffer;
 		
 		gdev::SpaceDef acSpace, obSpace;
 

@@ -8,10 +8,10 @@
 #include <ez/deserialize.hpp>
 
 namespace gdev {
-	void serialize(RequestType type, std::vector<uint8_t>& buffer) {
+	void serialize(RequestType type, std::string& buffer) {
 		ez::serialize::u8((uint8_t)type, buffer);
 	}
-	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, RequestType& value) {
+	const char* deserialize(const char* buffer, const char* end, RequestType& value) {
 		uint8_t tmp;
 		buffer = ez::deserialize::u8(buffer, end, tmp);
 		value = static_cast<RequestType>(tmp);
@@ -19,10 +19,10 @@ namespace gdev {
 	}
 
 
-	void serialize(ValueType type, std::vector<uint8_t>& buffer) {
+	void serialize(ValueType type, std::string& buffer) {
 		ez::serialize::u8((uint8_t)type, buffer);
 	}
-	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, ValueType& value) {
+	const char* deserialize(const char* buffer, const char* end, ValueType& value) {
 		uint8_t tmp;
 		buffer = ez::deserialize::u8(buffer, end, tmp);
 		value = static_cast<ValueType>(tmp);
@@ -30,7 +30,7 @@ namespace gdev {
 	}
 
 
-	void serialize(const Value& value, std::vector<uint8_t>& buffer) {
+	void serialize(const Value& value, std::string& buffer) {
 		serialize(value.type(), buffer);
 		ez::serialize::i32(value.dim(0), buffer);
 		ez::serialize::i32(value.dim(1), buffer);
@@ -63,7 +63,7 @@ namespace gdev {
 			break;
 		}}
 	}
-	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, Value& value) {
+	const char* deserialize(const char* buffer, const char* end, Value& value) {
 		ValueType type;
 		buffer = deserialize(buffer, end, type);
 
@@ -119,7 +119,7 @@ namespace gdev {
 	}
 
 
-	void serialize(const ValueDef& value, std::vector<uint8_t>& buffer) {
+	void serialize(const ValueDef& value, std::string& buffer) {
 		serialize(value.type(), buffer);
 		ez::serialize::i32(value.dim(0), buffer);
 		ez::serialize::i32(value.dim(1), buffer);
@@ -141,7 +141,7 @@ namespace gdev {
 			break;
 		}}
 	}
-	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, ValueDef& value) {
+	const char* deserialize(const char* buffer, const char* end, ValueDef& value) {
 		ValueType type;
 		buffer = deserialize(buffer, end, type);
 
@@ -177,7 +177,7 @@ namespace gdev {
 	}
 
 
-	void serialize(const Space& value, std::vector<uint8_t>& buffer) {
+	void serialize(const Space& value, std::string& buffer) {
 		ez::serialize::u64(value.size(), buffer);
 
 		for (const auto & subvalue : value) {
@@ -185,7 +185,7 @@ namespace gdev {
 			serialize(subvalue.value, buffer);
 		}
 	}
-	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, Space& space) {
+	const char* deserialize(const char* buffer, const char* end, Space& space) {
 		uint64_t count;
 		buffer = ez::deserialize::u64(buffer, end, count);
 
@@ -202,7 +202,7 @@ namespace gdev {
 	}
 
 
-	void serialize(const SpaceDef& value, std::vector<uint8_t>& buffer) {
+	void serialize(const SpaceDef& value, std::string& buffer) {
 		ez::serialize::u64(value.size(), buffer);
 
 		for (const auto& subvalue : value) {
@@ -210,7 +210,7 @@ namespace gdev {
 			serialize(subvalue.value, buffer);
 		}
 	}
-	const uint8_t* deserialize(const uint8_t* buffer, const uint8_t* end, SpaceDef& space) {
+	const char* deserialize(const char* buffer, const char* end, SpaceDef& space) {
 		uint64_t count;
 		buffer = ez::deserialize::u64(buffer, end, count);
 
@@ -227,22 +227,22 @@ namespace gdev {
 	}
 
 
-	void serializeDefs(const gdev::SpaceDef& acSpace, const gdev::SpaceDef& obSpace, std::vector<uint8_t>& buffer) {
+	void serializeDefs(const gdev::SpaceDef& acSpace, const gdev::SpaceDef& obSpace, std::string& buffer) {
 		serialize(acSpace, buffer);
 		serialize(obSpace, buffer);
 	}
-	const uint8_t* deserializeDefs(const uint8_t* buffer, const uint8_t* end, gdev::SpaceDef& acSpace, gdev::SpaceDef& obSpace) {
+	const char* deserializeDefs(const char* buffer, const char* end, gdev::SpaceDef& acSpace, gdev::SpaceDef& obSpace) {
 		buffer = deserialize(buffer, end, acSpace);
 		return deserialize(buffer, end, obSpace);
 	}
 
 
-	void serializeStep(const gdev::Space& observation, float reward, bool done, std::vector<uint8_t>& buffer) {
+	void serializeStep(const gdev::Space& observation, float reward, bool done, std::string& buffer) {
 		ez::serialize::u8(uint8_t(done), buffer);
 		ez::serialize::f32(reward, buffer);
 		serialize(observation, buffer);
 	}
-	const uint8_t* deserializeStep(const uint8_t* buffer, const uint8_t* end, gdev::Space& observation, float& reward, bool& done) {
+	const char* deserializeStep(const char* buffer, const char* end, gdev::Space& observation, float& reward, bool& done) {
 		uint8_t donetmp;
 		buffer = ez::deserialize::u8(buffer, end, donetmp);
 		done = donetmp > 0;

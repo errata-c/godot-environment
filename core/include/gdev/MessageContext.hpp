@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <vector>
 #include <cinttypes>
 #include <zmq.hpp>
 
@@ -37,10 +36,10 @@ namespace gdev {
 		void disconnect();
 
 		// Attempt to send a buffer of data to the other context.
-		bool send(const std::vector<uint8_t> & buffer);
+		bool send(const std::string & buffer);
 
 		// Attempt to receive a buffer of data from the other context.
-		bool recv(std::vector<uint8_t> & buffer);
+		bool recv(std::string & buffer);
 
 		// Send a ping message to check if the server is ready.
 		bool sendPing();

@@ -1,6 +1,6 @@
 
 
-# The static implementation for export
+# EnvironmentNode to interface with Godot
 add_library(gdev-environment SHARED
 	"src/EnvironmentNode.cpp"
 	"src/EnvironmentNodePrint.cpp"

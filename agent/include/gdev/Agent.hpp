@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+#include <string>
 #include <filesystem>
 #include <cinttypes>
 
@@ -61,7 +61,7 @@ namespace gdev {
 		SpaceDef acSpace, obSpace;
 		gdev::MessageContext mcontext;
 
-		std::vector<uint8_t> buffer;
+		std::string buffer;
 		std::vector<Space> observations;
 	};
 }

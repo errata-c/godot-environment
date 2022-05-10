@@ -106,8 +106,8 @@ namespace godot {
 		if (mcontext.recv(buffer)) {
 			gdev::RequestType req = gdev::RequestType::None;
 			
-			const uint8_t* data = buffer.data();
-			const uint8_t* end = buffer.data() + buffer.size();
+			const char* data = buffer.data();
+			const char* end = buffer.data() + buffer.size();
 			data = gdev::deserialize(data, end, req);
 			if (req != gdev::RequestType::Initialize) {
 				Godot::print_error("First request received from Agent was not Initialize!",
@@ -300,8 +300,8 @@ namespace godot {
 					return;
 				}
 
-				const uint8_t* data = buffer.data();
-				const uint8_t* end = buffer.data() + buffer.size();
+				const char* data = buffer.data();
+				const char* end = buffer.data() + buffer.size();
 				data = gdev::deserialize(data, end, req);
 
 				switch (req) {

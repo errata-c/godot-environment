@@ -55,7 +55,7 @@ namespace gdev {
 		return true;
 	}
 
-	bool MessageContext::send(const std::vector<uint8_t>& buffer) {
+	bool MessageContext::send(const std::string& buffer) {
 		if (!isConnected()) {
 			return false;
 		}
@@ -66,7 +66,7 @@ namespace gdev {
 		return result.has_value();
 	}
 
-	bool MessageContext::recv(std::vector<uint8_t>& buffer) {
+	bool MessageContext::recv(std::string& buffer) {
 		if (!isConnected()) {
 			return false;
 		}
@@ -78,8 +78,8 @@ namespace gdev {
 			return false;
 		}
 
-		const uint8_t * data = (const uint8_t*)message.data();
-		const uint8_t * last = data + message.size();
+		const char* data = (const char*)message.data();
+		const char* last = data + message.size();
 
 		for (; data != last; ++data) {
 			buffer.push_back(*data);

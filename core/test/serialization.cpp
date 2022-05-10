@@ -21,16 +21,16 @@ TEST_CASE("serialize values") {
 		gdev::Value::MakeInt(2, 10)
 	}};
 
-	std::vector<uint8_t> buffer;
+	std::string buffer;
 	for (gdev::Value & val : values) {
 		gdev::serialize(val, buffer);
 	}
 	
 	std::vector<gdev::Value> regen(values.size(), gdev::Value{});
 	
-	const uint8_t* data = buffer.data(), * end = buffer.data() + buffer.size();
+	const char* data = buffer.data(), * end = buffer.data() + buffer.size();
 	for (gdev::Value & value: regen) {
-		const uint8_t * prev = data;
+		const char* prev = data;
 
 		REQUIRE_NOTHROW(data = gdev::deserialize(data, end, value));
 		REQUIRE(prev != data);
@@ -49,10 +49,10 @@ TEST_CASE("Serialize space") {
 	space.insert("real", gdev::Value::MakeReal(0.5f));
 	space.insert("cat", gdev::Value::MakeInt(2));
 
-	std::vector<uint8_t> buffer;
+	std::string buffer;
 	gdev::serialize(space, buffer);
 
-	const uint8_t * data = buffer.data(), *end = buffer.data() + buffer.size();
+	const char* data = buffer.data(), *end = buffer.data() + buffer.size();
 
 	gdev::Space regen;
 	data = gdev::deserialize(data, end, regen);
@@ -66,9 +66,9 @@ TEST_CASE("Serialize space def") {
 	space.insert("real", gdev::ValueDef::MakeBool(gdev::dim_t{ 2,3,4,5 }));
 	space.insert("cat", gdev::ValueDef::MakeBool(gdev::dim_t{ 3,4,5,6 }));
 
-	std::vector<uint8_t> buffer;
+	std::string buffer;
 	gdev::serialize(space, buffer);
-	const uint8_t* data = buffer.data(), * end = buffer.data() + buffer.size();
+	const char* data = buffer.data(), * end = buffer.data() + buffer.size();
 
 	gdev::SpaceDef regen;
 	data = gdev::deserialize(data, end, regen);
