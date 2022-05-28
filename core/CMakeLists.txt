@@ -20,6 +20,7 @@ target_compile_features(gdev-core PUBLIC
 target_link_libraries(gdev-core PUBLIC 
 	cppzmq
 	ez::serialize
+	fmt::fmt
 )
 target_compile_options(gdev-core PUBLIC
 	"$<$<CXX_COMPILER_ID:MSVC>:/wd26812>" # Stop msvc from annoying us with the unscoped enum warning.

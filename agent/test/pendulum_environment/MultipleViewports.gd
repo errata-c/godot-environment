@@ -5,7 +5,7 @@ extends GridContainer
 # var a = 2
 # var b = "text"
 var views = []
-var pendulum_scene = preload("res://Pendulum.tscn")
+var pendulum_scene = preload("res://pendulum/Pendulum.tscn")
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

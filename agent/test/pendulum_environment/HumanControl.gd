@@ -40,7 +40,7 @@ func _input(event):
 	elif rightHeld:
 		force -= 1.0
 	
-	actions["force"] = force
+	actions["force"] = force * 0.5
 
 func set_observation(name, value):
 	if name == "angular_velocity":

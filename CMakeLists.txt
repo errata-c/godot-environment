@@ -28,6 +28,8 @@ find_package(godot-cpp 3 CONFIG REQUIRED)
 # Used to facilitate the request reply loop between the agent and the environment.
 find_package(cppzmq CONFIG REQUIRED)
 
+find_package(fmt CONFIG REQUIRED)
+
 # create the core library, shared features of both the agent and environment.
 # adds gdev::core target
 add_subdirectory("core")

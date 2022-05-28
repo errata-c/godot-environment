@@ -45,6 +45,9 @@ namespace gdev {
 
 		Value& operator[](std::string_view name);
 
+		Value& at(std::string_view name);
+		const Value& at(std::string_view name) const;
+
 		iterator erase(iterator pos);
 		iterator erase(const_iterator pos);
 		bool erase(std::string_view name);

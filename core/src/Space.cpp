@@ -1,5 +1,7 @@
 #include <gdev/Space.hpp>
 #include <utility>
+#include <stdexcept>
+#include <fmt/format.h>
 
 namespace gdev {
 	using iterator = Space::iterator;
@@ -90,6 +92,29 @@ namespace gdev {
 		else {
 			auto opt = insert(name, Value{});
 			return opt.value()->value;
+		}
+	}
+
+	Value& Space::at(std::string_view name) {
+		auto mit = map.find(std::hash<std::string_view>{}(name));
+		if (mit != map.end()) {
+			return data[mit->second].value;
+		}
+		else {
+			throw std::out_of_range(
+				fmt::format("No value in gdev::Space with name '{}'!", name)
+			);
+		}
+	}
+	const Value& Space::at(std::string_view name) const {
+		auto mit = map.find(std::hash<std::string_view>{}(name));
+		if (mit != map.end()) {
+			return data[mit->second].value;
+		}
+		else {
+			throw std::out_of_range(
+				fmt::format("No value in gdev::Space with name '{}'!", name)
+			);
 		}
 	}
 
