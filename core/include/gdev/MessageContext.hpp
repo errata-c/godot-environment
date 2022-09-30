@@ -29,6 +29,14 @@ namespace gdev {
 		MessageContext(Com _type);
 		~MessageContext();
 
+		void setSendTimeout(int ms);
+		void setRecvTimeout(int ms);
+		void setConnectTimeout(int ms);
+
+		int getSendTimeout() const;
+		int getRecvTimeout() const;
+		int getConnectTimeout() const;
+
 		bool isValid() const noexcept;
 		bool isConnected() const noexcept;
 		

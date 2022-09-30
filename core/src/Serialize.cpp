@@ -195,7 +195,7 @@ namespace gdev {
 			buffer = ez::deserialize::string(buffer, end, name);
 			buffer = deserialize(buffer, end, subvalue);
 
-			space.insert(std::move(name), std::move(subvalue));
+			space.insert_or_assign(std::move(name), std::move(subvalue));
 		}
 
 		return buffer;
@@ -220,7 +220,7 @@ namespace gdev {
 			buffer = ez::deserialize::string(buffer, end, name);
 			buffer = deserialize(buffer, end, subvalue);
 
-			space.insert(std::move(name), std::move(subvalue));
+			space.insert_or_assign(std::move(name), std::move(subvalue));
 		}
 
 		return buffer;

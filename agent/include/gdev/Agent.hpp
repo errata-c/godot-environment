@@ -28,6 +28,10 @@ namespace gdev {
 		Agent();
 		Agent(Agent &&) noexcept = default;
 
+		void setSendTimeout(int ms);
+		void setRecvTimeout(int ms);
+		void setConnectTimeout(int ms);
+
 		// The space of all actions
 		const SpaceDef& actionSpace() const noexcept;
 
@@ -37,7 +41,11 @@ namespace gdev {
 		// Attempt to run the godot executable (name passed as the 'godot' param)
 		// using the scene specified
 		// Creates 'count' instances of the environment.
-		bool createEnvironment(const std::filesystem::path& godot, const std::filesystem::path& projectDir, const std::filesystem::path & sceneFile, int count);
+		bool createEnvironment(
+			const std::filesystem::path& godot, 
+			const std::filesystem::path& projectDir, 
+			const std::filesystem::path & sceneFile, 
+			int count = 1);
 
 		// Returns true if the environment has been created already.
 		bool hasEnvironment() const noexcept;

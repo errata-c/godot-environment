@@ -7,5 +7,7 @@ namespace gdev {
 		Reset,
 		Step,
 		Close,
+		SetRecvTimeout,
+		SetSendTimeout,
 	};
 }

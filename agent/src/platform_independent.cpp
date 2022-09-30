@@ -43,4 +43,13 @@ namespace gdev {
 	void addEnvSeedArgument(int seed, std::vector<std::string>& args) {
 		args.push_back("--env_seed=" + std::to_string(seed));
 	}
+	void addSendTimeoutArgument(int ms, std::vector<std::string>& args) {
+		args.push_back("--send_timeout=" + std::to_string(ms));
+	}
+	void addRecvTimeoutArgument(int ms, std::vector<std::string>& args) {
+		args.push_back("--recv_timeout=" + std::to_string(ms));
+	}
+	void addConnectTimeoutArgument(int ms, std::vector<std::string>& args) {
+		args.push_back("--connect_timeout=" + std::to_string(ms));
+	}
 }

@@ -14,6 +14,16 @@ namespace gdev {
 		: mcontext(gdev::Com::Agent)
 	{}
 
+	void Agent::setSendTimeout(int ms) {
+		mcontext.setSendTimeout(std::max(ms, -1));
+	}
+	void Agent::setRecvTimeout(int ms) {
+		mcontext.setRecvTimeout(std::max(ms, -1));
+	}
+	void Agent::setConnectTimeout(int ms) {
+		mcontext.setConnectTimeout(std::max(ms, 0));
+	}
+
 	const SpaceDef& Agent::actionSpace() const noexcept {
 		return acSpace;
 	}
@@ -27,6 +37,9 @@ namespace gdev {
 
 		int port;
 		{
+			// Is this really the best solution?
+			// We should have a more robust method for finding a valid port number, that checks to see if there is
+			// a conflict somewhere.
 			std::random_device rd;
 			std::uniform_int_distribution<> dist(portMin(), portMax());
 			std::mt19937 gen(rd());
@@ -37,6 +50,9 @@ namespace gdev {
 		std::vector<std::string> args;
 		addSceneArgument(sceneFile, args);
 		addPortArgument(port, args);
+		addConnectTimeoutArgument(mcontext.getConnectTimeout(), args);
+		addSendTimeoutArgument(mcontext.getSendTimeout(), args);
+		addRecvTimeoutArgument(mcontext.getRecvTimeout(), args);
 
 		// Attempt to run the exectuable
 		bool result = exec(godot, projectDir, args);

@@ -19,6 +19,7 @@
 #include <ViewportContainer.hpp>
 #include <World.hpp>
 #include <World2D.hpp>
+#include <String>
 
 namespace godot {
 	EnvironmentNode::Instance::Instance()
@@ -235,7 +236,7 @@ namespace godot {
 		godot::PoolStringArray args = godot::OS::get_singleton()->get_cmdline_args();
 
 		int64_t port = 2048;
-		bool foundArg = false;
+		bool foundPort = false;
 
 		// Parse args, look for a port number for communication
 		for (int i = 0; i < args.size(); ++i) {
@@ -244,21 +245,28 @@ namespace godot {
 				// Found an argument that may be a key value pair
 				godot::PoolStringArray key_value = arg.split("=");
 				if (key_value[0] == "--port") {
-					if (key_value[1].is_valid_integer()) {
-						port = key_value[1].to_int();
-						foundArg = true;
-					}
-					else {
-						Godot::print_error("An invalid integer has been given as a port number!", 
-						"EnvironmentNode::_ready", __FILE__, __LINE__);
-						quit(-1);
-						return;
-					}
+					port = key_value[1].to_int();
+					foundPort = true;
+				}
+				else if (key_value[0] == "--recv_timeout") {
+					int ms = key_value[1].to_int();
+					mcontext.setRecvTimeout(ms);
+					Godot::print(godot::String("Set the recv timeout to {0}").format(godot::Array::make(ms)));
+				}
+				else if (key_value[0] == "--send_timeout") {
+					int ms = key_value[1].to_int();
+					mcontext.setSendTimeout(ms);
+					Godot::print(godot::String("Set the send timeout to {0}").format(godot::Array::make(ms)));
+				}
+				else if (key_value[0] == "--connect_timeout") {
+					int ms = key_value[1].to_int();
+					mcontext.setConnectTimeout(ms);
+					Godot::print(godot::String("Set the connect timeout to {0}").format(godot::Array::make(ms)));
 				}
 			}
 		}
 		
-		if (foundArg) {
+		if (foundPort) {
 			Godot::print("Found the port argument!");
 		}
 		else {

@@ -4,42 +4,6 @@
 #include <vector>
 
 namespace gdev {
-	/*
-	struct PrivateInstance;
-
-	// Instance of the environment
-	class EnvInstance {
-	public:
-		EnvInstance() noexcept
-			: pinst(nullptr)
-		{}
-		EnvInstance(PrivateInstance* ptr) noexcept
-			: pinst(ptr)
-		{}
-
-		EnvInstance(EnvInstance && other) noexcept
-			: pinst(other.pinst)
-		{}
-		
-
-		explicit operator bool() const noexcept {
-			return isValid();
-		}
-		bool isValid() const noexcept {
-			return pinst != nullptr;
-		}
-
-
-		bool isRunning() const;
-
-		EnvInstance& operator=(EnvInstance&&) noexcept;
-
-		~EnvInstance();
-	private:
-		PrivateInstance * pinst;
-	};
-	*/
-
 	static constexpr int portMin() noexcept {
 		return 1024;
 	}
@@ -52,8 +16,11 @@ namespace gdev {
 	void addFixedFPSArgument(int fps, std::vector<std::string>& args);
 	void addHeadlessArgument(std::vector<std::string>& args);
 	void addEnvSeedArgument(int seed, std::vector<std::string>& args);
+	void addSendTimeoutArgument(int ms, std::vector<std::string>& args);
+	void addRecvTimeoutArgument(int ms, std::vector<std::string>& args);
+	void addConnectTimeoutArgument(int ms, std::vector<std::string>& args);
 
-	// Extra args are passed like --key=value
+	// Extra args are passed like --key=value to the actual executable.
 
 	// system specific function to run the godot executable.
 	// You must pass the path to the godot executable, the directory of the project, and the port to use for com.

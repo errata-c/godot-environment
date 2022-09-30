@@ -10,9 +10,34 @@ namespace gdev {
 		, socket(ctx, _type == Com::Agent ? zmq::socket_type::req : zmq::socket_type::rep)
 		, type(_type)
 		, mport(-1)
-	{}
+	{
+		// The connect timeout should be longer as the environment might take some time to open.
+		socket.set(zmq::sockopt::connect_timeout, 30000);
+		socket.set(zmq::sockopt::rcvtimeo, 4000);
+		socket.set(zmq::sockopt::sndtimeo, 4000);
+	}
 	MessageContext::~MessageContext()
 	{}
+
+	void MessageContext::setSendTimeout(int ms) {
+		socket.set(zmq::sockopt::sndtimeo, ms);
+	}
+	void MessageContext::setRecvTimeout(int ms) {
+		socket.set(zmq::sockopt::rcvtimeo, ms);
+	}
+	void MessageContext::setConnectTimeout(int ms) {
+		socket.set(zmq::sockopt::connect_timeout, ms);
+	}
+
+	int MessageContext::getSendTimeout() const {
+		return socket.get(zmq::sockopt::sndtimeo);
+	}
+	int MessageContext::getRecvTimeout() const {
+		return socket.get(zmq::sockopt::rcvtimeo);
+	}
+	int MessageContext::getConnectTimeout() const {
+		return socket.get(zmq::sockopt::connect_timeout);
+	}
 
 	bool MessageContext::isValid() const noexcept {
 		return bool(ctx);
@@ -62,7 +87,7 @@ namespace gdev {
 
 		auto data = zmq::buffer(buffer.data(), buffer.size());
 		zmq::send_result_t result = socket.send(data);
-
+		
 		return result.has_value();
 	}
 
