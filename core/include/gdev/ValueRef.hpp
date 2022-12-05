@@ -1,11 +1,12 @@
 #pragma once
-#include "ValueType.hpp"
+#include <gdev/ValueType.hpp>
 
 namespace gdev {
 	class ConstValueRef;
 
 	// Dynamic reference to a datum in the value class
 	// Constructor creates a new reference, assignment assigns to the referenced object.
+	// Thus, it behaves similar to an actual reference, and the underlying pointer cannot be changed after initialization!
 	class ValueRef {
 	public:
 		friend class ConstValueRef;

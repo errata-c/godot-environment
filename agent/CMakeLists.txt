@@ -15,7 +15,3 @@ target_include_directories(gdev-agent PUBLIC
 )
 add_library(gdev::agent ALIAS gdev-agent)
 set_target_properties(gdev-agent PROPERTIES EXPORT_NAME agent)
-
-if(GODOT_ENVIRONMENT_BUILD_TESTS)
-	add_subdirectory("test")
-endif()

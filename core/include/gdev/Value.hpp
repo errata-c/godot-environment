@@ -1,6 +1,6 @@
 #pragma once
-#include "ValueType.hpp"
-#include "ValueRef.hpp"
+#include <gdev/ValueType.hpp>
+#include <gdev/ValueRef.hpp>
 
 #include <cinttypes>
 #include <cstddef>

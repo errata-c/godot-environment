@@ -1,5 +1,5 @@
 #pragma once
-#include "Value.hpp"
+#include <gdev/Value.hpp>
 #include <cinttypes>
 #include <limits>
 #include <array>
@@ -7,6 +7,13 @@
 namespace gdev {
 	using range_t = std::array<double, 2>;
 
+	/*
+	Defines a value for using the SpaceDef class.
+	The full definition of a value for use in SpaceDef includes:
+		The underlying type of the value (Int, Bool, or Real)
+		The range of accepted values
+		The size of the (4 dimensional) tensor
+	*/
 	class ValueDef {
 	public:
 		ValueDef() noexcept;

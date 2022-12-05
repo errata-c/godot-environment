@@ -27,7 +27,3 @@ target_compile_options(gdev-core PUBLIC
 )
 set_target_properties(gdev-core PROPERTIES EXPORT_NAME core)
 add_library(gdev::core ALIAS gdev-core)
-
-if(GODOT_ENVIRONMENT_BUILD_TESTS)
-	add_subdirectory("test")
-endif()

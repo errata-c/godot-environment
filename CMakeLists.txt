@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.21)
 
 project(GODOT_ENVIRONMENT
 	LANGUAGES C CXX
@@ -28,6 +28,7 @@ find_package(godot-cpp 3 CONFIG REQUIRED)
 # Used to facilitate the request reply loop between the agent and the environment.
 find_package(cppzmq CONFIG REQUIRED)
 
+# Used for printing
 find_package(fmt CONFIG REQUIRED)
 
 # create the core library, shared features of both the agent and environment.
@@ -42,28 +43,34 @@ add_subdirectory("agent")
 # adds gdev::environment target
 add_subdirectory("environment")
 
+if(PROJECT_IS_TOP_LEVEL)
+	include(CTest)
+	if(BUILD_TESTING)
+		add_subdirectory("test")
+	endif()
 
-# Install all the include files
-install(DIRECTORY "core/include/" DESTINATION "include"
-	FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
-install(DIRECTORY "agent/include/" DESTINATION "include"
-	FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+	# Install all the include files
+	install(DIRECTORY "core/include/" DESTINATION "include"
+		FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+	)
+	install(DIRECTORY "agent/include/" DESTINATION "include"
+		FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+	)
 
-install(TARGETS gdev-core gdev-agent
-	EXPORT gdev-export
-	RUNTIME DESTINATION "bin/$<CONFIG>"
-	ARCHIVE DESTINATION "lib/$<CONFIG>"
-	LIBRARY DESTINATION "lib/$<CONFIG>"
-)
+	install(TARGETS gdev-core gdev-agent
+		EXPORT gdev-export
+		RUNTIME DESTINATION "bin/$<CONFIG>"
+		ARCHIVE DESTINATION "lib/$<CONFIG>"
+		LIBRARY DESTINATION "lib/$<CONFIG>"
+	)
 
-install_package(
-	NAME "godot-environment"
-	NAMESPACE "gdev::"
-	EXPORT "gdev-export"
-	VERSION "${GODOT_ENVIRONMENT_VERSION}"
-	COMPATIBILITY "SameMajorVersion"
-	DESTINATION "${GODOT_ENVIRONMENT_CONFIG_DIR}"
-	PRECONFIG "cmake/preconfig.cmake"
-)
+	install_package(
+		NAME "godot-environment"
+		NAMESPACE "gdev::"
+		EXPORT "gdev-export"
+		VERSION "${GODOT_ENVIRONMENT_VERSION}"
+		COMPATIBILITY "SameMajorVersion"
+		DESTINATION "${GODOT_ENVIRONMENT_CONFIG_DIR}"
+		PRECONFIG "cmake/preconfig.cmake"
+	)
+endif()

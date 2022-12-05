@@ -2,7 +2,7 @@
 #pragma warning(disable: 26812)
 #endif
 
-#include <catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include <gdev/ValueDef.hpp>
 #include <gdev/Value.hpp>

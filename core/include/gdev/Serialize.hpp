@@ -1,8 +1,8 @@
 #pragma once
 #include <cinttypes>
 #include <string>
-#include "ValueType.hpp"
-#include "RequestType.hpp"
+#include <gdev/ValueType.hpp>
+#include <gdev/RequestType.hpp>
 
 namespace gdev {
 	class Value;

@@ -7,7 +7,11 @@
 #include <gdev/Value.hpp>
 
 namespace gdev {
-	// A dictionary containing the possibilities for actions or observations
+	/*
+	A dictionary containing the possibilities for actions or observations.
+	Each element in this dictionary is indexed by name, and returns a reference to a 4D tensor.
+	The Tensor is of type Int, Bool, or Real
+	*/
 	class Space {
 	public:
 		struct value_type {
