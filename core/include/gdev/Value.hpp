@@ -1,17 +1,17 @@
 #pragma once
 #include <gdev/ValueType.hpp>
 #include <gdev/ValueRef.hpp>
+#include <gdev/core/Range.hpp>
 
 #include <cinttypes>
 #include <cstddef>
 #include <vector>
 #include <array>
+#include <memory>
+#include <initializer_list>
+#include <type_traits>
 
-// Potential alternative to Godot::Variant
-// More specialized
 namespace gdev {
-	using dim_t = std::array<int, 4>;
-
 	class Value {
 	public:
 		struct iterator;
@@ -19,41 +19,68 @@ namespace gdev {
 
 		using Type = ValueType;
 
-		explicit Value(bool val) noexcept;
-		explicit Value(int val) noexcept;
-		explicit Value(double val) noexcept;
-
 		Value() noexcept;
 		Value(const Value & other);
 		Value& operator=(const Value& other);
 		Value(Value && other) noexcept;
 		Value& operator=(Value && other) noexcept;
 		~Value();
-		
-		static Value MakeBool(bool val, int x = 1, int y = 1, int z = 1, int w = 1);
-		static Value MakeReal(double val, int x = 1, int y = 1, int z = 1, int w = 1);
-		static Value MakeInt(int val, int x = 1, int y = 1, int z = 1, int w = 1);
 
-		static Value MakeBool(bool val, dim_t dims);
-		static Value MakeReal(double val, dim_t dims);
-		static Value MakeInt(int val, dim_t dims);
+private:
+		// Uninitialized constructor
+		Value(dim_t dims, ValueType id)
+			: mtype(id)
+			, mdims{ dims }
+		{
+			allocate();
+		}
+public:
+		static Value Uninitialized(dim_t dims, ValueType id = ValueType::f32) {
+			return Value(dims, id);
+		}
+
+		// Single value constructor
+		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+		Value(const T& val, ValueType id = ValueTypeTraits<T>::id)
+			: Value(val, dim_t{1,1,1,1}, id)
+		{}
+
+		// Single value dimensioned constructor
+		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+		Value(const T& val, dim_t dims, ValueType id = ValueTypeTraits<T>::id)
+			: mtype(id)
+			, mdims{ dims }
+		{
+			allocate();
+			fill(val);
+		}
+
+		// flat initializer list constructor
+		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+		Value(std::initializer_list<T> init, ValueType id = ValueTypeTraits<T>::id)
+			: Value(init, dim_t{init.size(), 1, 1, 1}, id)
+		{}
+
+		// Dimensioned initializer list constructor
+		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+		Value(std::initializer_list<T> init, dim_t dims, ValueType id = ValueTypeTraits<T>::id)
+			: mtype(id)
+			, mdims(dims)
+		{
+			allocate();
+
+		}
+
+		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
+		void fill(const T& val) {
+			visitors::single_visit<FillFunc>(type(), data(), data() + bytes(), val);
+		}
 
 		std::size_t size() const noexcept;
+		std::size_t elements() const noexcept;
+		std::size_t bytes() const noexcept;
 
 		Type type() const noexcept;
-
-		bool isBool() const noexcept;
-		bool isReal() const noexcept;
-		bool isInt() const noexcept;
-		
-		bool & asBool();
-		const bool& asBool() const;
-
-		double& asReal();
-		const double& asReal() const;
-
-		int& asInt();
-		const int& asInt() const;
 
 		ValueRef at(int i0);
 		ConstValueRef at(int i0) const;
@@ -73,20 +100,11 @@ namespace gdev {
 		bool equal(const Value & other) const noexcept;
 		bool nequal(const Value & other) const noexcept;
 
-		bool operator==(const gdev::Value& rh) const noexcept;
-		bool operator!=(const gdev::Value& rh) const noexcept;
-
-		bool operator==(bool rh) const noexcept;
-		bool operator!=(bool rh) const noexcept;
-
-		bool operator==(int rh) const noexcept;
-		bool operator!=(int rh) const noexcept;
-
-		bool operator==(double rh) const noexcept;
-		bool operator!=(double rh) const noexcept;
+		bool operator==(const Value& rh) const noexcept;
+		bool operator!=(const Value& rh) const noexcept;
 
 		iterator begin();
-		iterator end(); 
+		iterator end();
 
 		const_iterator begin() const;
 		const_iterator end() const;
@@ -107,23 +125,37 @@ namespace gdev {
 		// Attempt to change the dimensions of this tensor, without changing the order of the elements
 		// Throws an exception if the number of elements would be changed by changing the dims
 		void moddims(const dim_t & ndims);
+
+		char* data() noexcept;
+		const char* data() const noexcept;
 	private:
 		Type mtype;
 		dim_t mdims;
-		void * data;
+		//range_t mrange;
+		std::unique_ptr<char[]> mdata;
 
-		union {
-			bool binary;
-			double real;
-			int category;
+		void allocate();
 
-			char buffer[sizeof(double)];
+		struct FillFunc {
+			template<typename T1, typename T2>
+			static void apply(char* _first, char* _last, const T2& val) {
+				auto first = (T1*)_first;
+				auto last = (T1*)_last;
+				for (; first != last; ++first) {
+					*first = static_cast<T1>(val);
+				}
+			}
 		};
-
-		Value(Type _type, dim_t _dims, bool val);
-		Value(Type _type, dim_t _dims, int val);
-		Value(Type _type, dim_t _dims, double val);
-
+		struct AssignFunc {
+			template<typename T1, typename InputIt>
+			static void apply(char* _data_first, char* _data_last, InputIt first, InputIt last) {
+				auto data_first = (T1*)_data_first;
+				auto data_last = (T1*)_data_last;
+				for (; first != last && data_first != data_last; ++data_first, ++first) {
+					*data_first = static_cast<T1>(*first);
+				}
+			}
+		};
 	public:
 		struct iterator {
 			using iterator_category = std::random_access_iterator_tag;
@@ -135,10 +167,6 @@ namespace gdev {
 			iterator(const iterator& other) noexcept = default;
 			iterator& operator=(const iterator&) noexcept = default;
 			~iterator() = default;
-
-			explicit operator bool*();
-			explicit operator int*();
-			explicit operator double*();
 
 			iterator() noexcept;
 			iterator(void * _data, ValueType _type) noexcept;
@@ -185,9 +213,6 @@ namespace gdev {
 			const_iterator& operator=(const const_iterator&) noexcept = default;
 			~const_iterator() = default;
 
-			explicit operator const bool* ();
-			explicit operator const int* ();
-			explicit operator const double* ();
 
 			const_iterator() noexcept;
 			const_iterator(const void *, ValueType) noexcept;

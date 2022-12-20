@@ -1,11 +1,10 @@
 
 add_library(gdev-core STATIC
+	"src/ValueType.cpp"
 	"src/Value.cpp"
 	"src/ValueRef.cpp"
 	"src/ValueIterators.cpp"
-
-	"src/ValueDef.cpp"
-	"src/SpaceDef.cpp"
+	
 	"src/Space.cpp"
 	"src/MessageContext.cpp"
 	"src/Serialize.cpp"

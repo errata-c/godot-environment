@@ -35,7 +35,6 @@ namespace godot {
 
 	EnvironmentNode::EnvironmentNode()
 		: mcontext(gdev::Com::Environment)
-		, currentIndex(0)
 	{}
 	EnvironmentNode::~EnvironmentNode()
 	{}
@@ -65,35 +64,35 @@ namespace godot {
 	}
 
 	gdev::SpaceDef& EnvironmentNode::actionSpaceDef() noexcept {
-		return acSpace;
+		return maction_space_def;
 	}
 	const gdev::SpaceDef& EnvironmentNode::actionSpaceDef() const noexcept {
-		return acSpace;
+		return maction_space_def;
 	}
 
 	gdev::SpaceDef& EnvironmentNode::observationSpaceDef() noexcept {
-		return obSpace;
+		return mobservation_space_def;
 	}
 	const gdev::SpaceDef& EnvironmentNode::observationSpaceDef() const noexcept {
-		return obSpace;
+		return mobservation_space_def;
 	}
 
 	void EnvironmentNode::set_reward(double val) {
-		instances[currentIndex].reward = val;
+		minstance.reward = val;
 	}
 	double EnvironmentNode::get_reward() const noexcept {
-		return instances[currentIndex].reward;
+		return minstance.reward;
 	}
 
 	bool EnvironmentNode::get_done() const noexcept {
-		return instances[currentIndex].done;
+		return minstance.done;
 	}
 	void EnvironmentNode::set_done(bool val) noexcept {
-		instances[currentIndex].done = val;
+		minstance.done = val;
 	}
 	
 	void EnvironmentNode::register_scene(godot::String scene) {
-		if (acSpace.empty() || obSpace.empty()) {
+		if (maction_space_def.empty() || mobservation_space_def.empty()) {
 			Godot::print_error("Attempt to register a scene with the EnvironmentNode prior to defining the action and observation spaces!",
 				"EnvironmentNode::register_scene", __FILE__, __LINE__);
 			quit(-1);
@@ -101,14 +100,13 @@ namespace godot {
 		}
 
 		// Attempt to get the first initialization message
-		int numInstances = 0;
 
-		buffer.clear();
-		if (mcontext.recv(buffer)) {
+		mbuffer.clear();
+		if (mcontext.recv(mbuffer)) {
 			gdev::RequestType req = gdev::RequestType::None;
 			
-			const char* data = buffer.data();
-			const char* end = buffer.data() + buffer.size();
+			const char* data = mbuffer.data();
+			const char* end = mbuffer.data() + mbuffer.size();
 			data = gdev::deserialize(data, end, req);
 			if (req != gdev::RequestType::Initialize) {
 				Godot::print_error("First request received from Agent was not Initialize!",
@@ -116,8 +114,6 @@ namespace godot {
 				quit(-1);
 				return;
 			}
-			
-			data = ez::deserialize::i32(data, end, numInstances);
 		}
 		else {
 			Godot::print_error("Failed to get the first message from the Agent!",
@@ -127,9 +123,9 @@ namespace godot {
 			return;
 		}
 
-		buffer.clear();
-		gdev::serializeDefs(acSpace, obSpace, buffer);
-		if (!mcontext.send(buffer)) {
+		mbuffer.clear();
+		gdev::serializeDefs(maction_space_def, mobservation_space_def, mbuffer);
+		if (!mcontext.send(mbuffer)) {
 			Godot::print_error("Failed to send the action and observation space definitions!", 
 				"EnvironmentNode::register_scene", __FILE__, __LINE__);
 
@@ -162,67 +158,37 @@ namespace godot {
 			return;
 		}
 
-		prepareInstances(numInstances, packed);
+		prepareInstance(packed);
 	}
 
-	void EnvironmentNode::prepareInstances(int numInstances, const Ref<PackedScene>& packed) {
-		// Determine the number of columns to use when splitting the screen.
-		int columns = std::sqrt(numInstances);
-		Vector2 scaleFactor;
-		{
-			float factor = 1.f / float(columns);
-			scaleFactor = Vector2(factor, factor);
+	void EnvironmentNode::prepareInstance(const Ref<PackedScene>& packed) {
+		godot::Node* node = packed->instance();
+
+		// We need to first check that the node follows the expected interface, but only once
+		if (!node->has_method("step")) {
+			godot::String errorMsg = godot::String("Node '{0}' does not have a 'step' method!").format(node->get_name());
+			Godot::print_error(errorMsg,
+				"EnvironmentNode::register_scene", __FILE__, __LINE__);
+			quit(-1);
+			return;
 		}
-		
-		// We create a grid container to organize the viewports
-		GridContainer * grid = GridContainer::_new();
-		grid->set_columns(columns);
-		grid->set_anchors_preset(Control::PRESET_WIDE);
-		add_child(grid);
-
-		for (int i = 0; i < numInstances; ++i) {
-			ViewportContainer * viewBox = ViewportContainer::_new();
-			Viewport* view = Viewport::_new();
-			viewBox->set_stretch(true);
-			viewBox->set_h_size_flags(viewBox->get_h_size_flags() | Control::SIZE_EXPAND);
-			viewBox->set_v_size_flags(viewBox->get_v_size_flags() | Control::SIZE_EXPAND);
-
-			// Each viewport needs its own world to prevent conflicts and interaction between the instances
-			view->set_world(Ref<World>(World::_new()));
-			view->set_world_2d(Ref<World2D>(World2D::_new()));
-			view->set_use_own_world(true);
-			view->set_global_canvas_transform(view->get_global_canvas_transform().scaled(scaleFactor));
-
-			grid->add_child(viewBox);
-			viewBox->add_child(view);
-
-			godot::Node* node = packed->instance();
-
-			// We need to first check that the node follows the expected interface, but only once
-			if (i == 0) {
-				if (!node->has_method("step")) {
-					godot::String errorMsg = godot::String("Node '{0}' does not have a 'step' method!").format(node->get_name());
-					Godot::print_error(errorMsg,
-						"EnvironmentNode::register_scene", __FILE__, __LINE__);
-					quit(-1);
-					return;
-				}
-				if (!node->has_method("reset")) {
-					godot::String errorMsg = godot::String("Node '{0}' does not have a 'reset' method!").format(node->get_name());
-					Godot::print_error(errorMsg,
-						"EnvironmentNode::register_scene", __FILE__, __LINE__);
-					quit(-1);
-					return;
-				}
-			}
+		if (!node->has_method("reset")) {
+			godot::String errorMsg = godot::String("Node '{0}' does not have a 'reset' method!").format(node->get_name());
+			Godot::print_error(errorMsg,
+				"EnvironmentNode::register_scene", __FILE__, __LINE__);
+			quit(-1);
+			return;
+		}
 			
-			view->add_child(node);
-			instances.emplace_back(node);
-		}
+			
+		add_child(node);
+		
 
-		for (auto & inst : instances) {
-			inst.observation = observationSpaceDef().instance();
-		}
+		minstance.node = node;
+		minstance.action = maction_space_def.instance();
+		minstance.observation = mobservation_space_def.instance();
+		minstance.done = false;
+		minstance.reward = 0.0;
 	}
 
 	void EnvironmentNode::_init() {
@@ -292,94 +258,79 @@ namespace godot {
 	}
 	
 	void EnvironmentNode::_physics_process(float delta) {
-		// Get messages for each of the instances.
-
-		// There may be a better way to determine when to end the message loop here.
-		// The main issue is the possibility of 
-		int stepCount = 0;
-
 		gdev::RequestType req = gdev::RequestType::None;
-		while (stepCount != instances.size()) {
-			buffer.clear();
-			if (mcontext.recv(buffer)) {
-				if (buffer.empty()) {
-					Godot::print_error("Failed to recv a message from the agent!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
-					quit(-1);
-					return;
-				}
 
-				const char* data = buffer.data();
-				const char* end = buffer.data() + buffer.size();
-				data = gdev::deserialize(data, end, req);
-
-				switch (req) {
-				default: {
-					godot::String errorMsg = "Received an invalid value of '{0}' for the request type!";
-					Godot::print_error(errorMsg.format(godot::Array::make(static_cast<int>(req))), "EnvironmentNode::reply", __FILE__, __LINE__);
-					quit(-1);
-					break;
-				}
-				case gdev::RequestType::Close: {
-					Godot::print("Received close command, ending the training session!");
-					quit(0);
-					break;
-				}
-				case gdev::RequestType::Reset: {
-					// No data in request
-					int32_t index;
-					data = ez::deserialize::i32(data, end, index);
-					currentIndex = index;
-
-					Instance& inst = instances[index];
-					inst.node->call("reset", godot::Array::make(this));
-
-					buffer.clear();
-					gdev::serializeStep(inst.observation, inst.reward, inst.done, buffer);
-					if (!mcontext.send(buffer)) {
-						Godot::print_error("Failed to send the step data!", "EnvironmentNode::reply", __FILE__, __LINE__);
-						quit(-1);
-						return;
-					}
-
-					++stepCount;
-					break;
-				}
-				case gdev::RequestType::Step: {
-					// Step contains the action data
-					int32_t index;
-					data = ez::deserialize::i32(data, end, index);
-					currentIndex = index;
-
-					Instance & inst = instances[index];
-
-					// Deserialize the action data!
-					data = gdev::deserialize(data, end, inst.action);
-					inst.node->call("step", godot::Array::make(this));
-
-					buffer.clear();
-					gdev::serializeStep(inst.observation, inst.reward, inst.done, buffer);
-					if (!mcontext.send(buffer)) {
-						Godot::print_error("Failed to send the step data!", "EnvironmentNode::reply", __FILE__, __LINE__);
-						quit(-1);
-						return;
-					}
-
-					++stepCount;
-					break;
-				}}
-			}
-			else {
+		mbuffer.clear();
+		if (mcontext.recv(mbuffer)) {
+			if (mbuffer.empty()) {
 				Godot::print_error("Failed to recv a message from the agent!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
 				quit(-1);
 				return;
 			}
+
+			const char* data = mbuffer.data();
+			const char* end = mbuffer.data() + mbuffer.size();
+			data = gdev::deserialize(data, end, req);
+
+			switch (req) {
+			default: {
+				godot::String errorMsg = "Received an invalid value of '{0}' for the request type!";
+				Godot::print_error(errorMsg.format(godot::Array::make(static_cast<int>(req))), "EnvironmentNode::reply", __FILE__, __LINE__);
+				quit(-1);
+				break;
+			}
+			case gdev::RequestType::Close: {
+				Godot::print("Received close command, ending the training session!");
+				quit(0);
+				break;
+			}
+			case gdev::RequestType::Reset: {
+				// No data in request
+				int32_t index;
+				data = ez::deserialize::i32(data, end, index);
+
+				minstance.node->call("reset", godot::Array::make(this));
+
+				mbuffer.clear();
+				gdev::serializeStep(minstance.observation, minstance.reward, minstance.done, mbuffer);
+				if (!mcontext.send(mbuffer)) {
+					Godot::print_error("Failed to send the step data!", "EnvironmentNode::reply", __FILE__, __LINE__);
+					quit(-1);
+					return;
+				}
+				break;
+			}
+			case gdev::RequestType::Step: {
+				// Step contains the action data
+				int32_t index;
+				data = ez::deserialize::i32(data, end, index);
+
+				// Deserialize the action data!
+				data = gdev::deserialize(data, end, minstance.action);
+				minstance.node->call("step", godot::Array::make(this));
+
+				mbuffer.clear();
+				gdev::serializeStep(minstance.observation, minstance.reward, minstance.done, mbuffer);
+				if (!mcontext.send(mbuffer)) {
+					Godot::print_error("Failed to send the step data!", "EnvironmentNode::reply", __FILE__, __LINE__);
+					quit(-1);
+					return;
+				}
+				break;
+			}}
 		}
+		else {
+			Godot::print_error("Failed to recv a message from the agent!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
+			quit(-1);
+			return;
+		}
+		
 	}
 
 	godot::Variant EnvironmentNode::get_action(godot::String name) {
 		godot::CharString cname = name.ascii();
 
-		gdev::Space & action = instances[currentIndex].action;
+		gdev::Space & action = minstance.action;
 		
 		auto it = action.find(std::string_view(cname.get_data(), cname.length()));
 		if (it == action.end()) {
@@ -396,7 +347,7 @@ namespace godot {
 	void EnvironmentNode::set_observation(godot::String name, godot::Variant value) {
 		godot::CharString cname = name.ascii();
 
-		gdev::Space & observation = instances[currentIndex].observation;
+		gdev::Space & observation = minstance.observation;
 
 		auto it = observation.find(std::string_view(cname.get_data(), cname.length()));
 		if (it == observation.end()) {

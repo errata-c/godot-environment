@@ -37,9 +37,9 @@ namespace godot {
 	}
 
 	void EnvironmentNode::print_action_space_def() {
-		print_space_def(acSpace);
+		print_space_def(maction_space_def);
 	}
 	void EnvironmentNode::print_observation_space_def() {
-		print_space_def(obSpace);
+		print_space_def(mobservation_space_def);
 	}
 }

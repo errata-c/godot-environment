@@ -4,21 +4,20 @@
 
 #include <catch2/catch_all.hpp>
 #include <gdev/Value.hpp>
-#include <gdev/ValueDef.hpp>
 #include <gdev/Space.hpp>
-#include <gdev/SpaceDef.hpp>
 
 #include <gdev/Serialize.hpp>
 
+
 TEST_CASE("serialize values") {
 	std::vector<gdev::Value> values{{
-		gdev::Value::MakeBool(true),
-		gdev::Value::MakeReal(0.5),
-		gdev::Value::MakeInt(2),
+		gdev::Value(true),
+		gdev::Value(0.5),
+		gdev::Value(2),
 
-		gdev::Value::MakeBool(true, 10),
-		gdev::Value::MakeReal(0.5, 10),
-		gdev::Value::MakeInt(2, 10)
+		gdev::Value(true, gdev::dim_t{10,1,1,1}),
+		gdev::Value(0.5, gdev::dim_t{10,1,1,1}),
+		gdev::Value(2, gdev::dim_t{10,1,1,1})
 	}};
 
 	std::string buffer;
@@ -45,9 +44,9 @@ TEST_CASE("serialize values") {
 
 TEST_CASE("Serialize space") {
 	gdev::Space space;
-	space.insert("bool", gdev::Value::MakeBool(true));
-	space.insert("real", gdev::Value::MakeReal(0.5f));
-	space.insert("cat", gdev::Value::MakeInt(2));
+	space.insert(std::make_pair("bool", true));
+	space.insert(std::make_pair("real", 0.0));
+	space.insert(std::make_pair("cat", 0));
 
 	std::string buffer;
 	gdev::serialize(space, buffer);
@@ -55,22 +54,6 @@ TEST_CASE("Serialize space") {
 	const char* data = buffer.data(), *end = buffer.data() + buffer.size();
 
 	gdev::Space regen;
-	data = gdev::deserialize(data, end, regen);
-
-	REQUIRE(space == regen);
-}
-
-TEST_CASE("Serialize space def") {
-	gdev::SpaceDef space;
-	space.insert("bool", gdev::ValueDef::MakeBool(gdev::dim_t{ 1,2,3,4 }));
-	space.insert("real", gdev::ValueDef::MakeBool(gdev::dim_t{ 2,3,4,5 }));
-	space.insert("cat", gdev::ValueDef::MakeBool(gdev::dim_t{ 3,4,5,6 }));
-
-	std::string buffer;
-	gdev::serialize(space, buffer);
-	const char* data = buffer.data(), * end = buffer.data() + buffer.size();
-
-	gdev::SpaceDef regen;
 	data = gdev::deserialize(data, end, regen);
 
 	REQUIRE(space == regen);

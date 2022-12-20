@@ -51,8 +51,8 @@ namespace godot {
 	}
 
 	void EnvironmentNode::define_action_space(godot::Dictionary dict) {
-		if (acSpace.empty()) {
-			if (fillSpaceDef(dict, "EnvironmentNode::define_action_space", acSpace)) {
+		if (maction_space_def.empty()) {
+			if (fillSpaceDef(dict, "EnvironmentNode::define_action_space", maction_space_def)) {
 				Godot::print("Successfully defined the action space!");
 			}
 			else {
@@ -64,8 +64,8 @@ namespace godot {
 		}
 	}
 	void EnvironmentNode::define_observation_space(godot::Dictionary dict) {
-		if (obSpace.empty()) {
-			if (fillSpaceDef(dict, "EnvironmentNode::define_observation_space", obSpace)) {
+		if (mobservation_space_def.empty()) {
+			if (fillSpaceDef(dict, "EnvironmentNode::define_observation_space", mobservation_space_def)) {
 				Godot::print("Successfully defined the observation space!");
 			}
 			else {

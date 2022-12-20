@@ -8,95 +8,109 @@
 using namespace gdev;
 using VType = gdev::ValueType;
 
+TEST_CASE("Value i8", "[value]") {
+	Value val(0, ValueType::i8);
+
+	REQUIRE(val.type() == ValueType::i8);
+	REQUIRE(val.elements() == 1);
+	REQUIRE(val.dims()[0] == 1);
+	REQUIRE(val.dims()[1] == 1);
+	REQUIRE(val.dims()[2] == 1);
+	REQUIRE(val.dims()[3] == 1);
+
+	auto ref = val.at(0);
+	REQUIRE(ref.type() == ValueType::i8);
+
+	REQUIRE(ref.as<int8_t>() == 0);
+	REQUIRE(ref == 0);
+}
+TEST_CASE("Value i16", "[value]") {
+	Value val(0, ValueType::i16);
+
+	REQUIRE(val.type() == ValueType::i16);
+	REQUIRE(val.elements() == 1);
+	REQUIRE(val.dims()[0] == 1);
+	REQUIRE(val.dims()[1] == 1);
+	REQUIRE(val.dims()[2] == 1);
+	REQUIRE(val.dims()[3] == 1);
+
+	auto ref = val.at(0);
+	REQUIRE(ref.type() == ValueType::i16);
+
+	REQUIRE(ref.as<int16_t>() == 0);
+	REQUIRE(ref == 0);
+}
+TEST_CASE("Value i32", "[value]") {
+	Value val(0, ValueType::i32);
+
+	REQUIRE(val.type() == ValueType::i32);
+	REQUIRE(val.elements() == 1);
+	REQUIRE(val.dims()[0] == 1);
+	REQUIRE(val.dims()[1] == 1);
+	REQUIRE(val.dims()[2] == 1);
+	REQUIRE(val.dims()[3] == 1);
+
+	auto ref = val.at(0);
+	REQUIRE(ref.type() == ValueType::i32);
+
+	REQUIRE(ref.as<int32_t>() == 0);
+	REQUIRE(ref == 0);
+}
+TEST_CASE("Value i64", "[value]") {
+	Value val(0, ValueType::i64);
+
+	REQUIRE(val.type() == ValueType::i64);
+	REQUIRE(val.elements() == 1);
+	REQUIRE(val.dims()[0] == 1);
+	REQUIRE(val.dims()[1] == 1);
+	REQUIRE(val.dims()[2] == 1);
+	REQUIRE(val.dims()[3] == 1);
+
+	auto ref = val.at(0);
+	REQUIRE(ref.type() == ValueType::i64);
+
+	REQUIRE(ref.as<int64_t>() == 0);
+	REQUIRE(ref == 0);
+}
+
+
+
 TEST_CASE("Value instantiation", "[value]") {
-	Value binary = Value::MakeBool(false);
-	Value real = Value::MakeReal(0.0);
-	Value cat = Value::MakeInt(0);
+	Value val0(0, dim_t{ 10,1,1,1 }, ValueType::i32);
 
-	Value vecBinary = Value::MakeBool(false, 10);
-	Value vecReal = Value::MakeReal(0.0, 10);
-	Value vecCat = Value::MakeInt(0, 10);
+	REQUIRE(val0.elements() == 10);
+	REQUIRE(val0.begin() != val0.end());
 
-	REQUIRE(binary.isBool());
-	REQUIRE(real.isReal());
-	REQUIRE(cat.isInt());
-
-	REQUIRE(binary.asBool() == false);
-	REQUIRE(real.asReal() == 0.0);
-	REQUIRE(cat.asInt() == 0);
-
-	REQUIRE(binary == false);
-
-	REQUIRE_THROWS(binary.asReal());
-	REQUIRE_THROWS(binary.asInt());
-
-	REQUIRE_THROWS(real.asBool());
-	REQUIRE_THROWS(real.asInt());
-
-	REQUIRE_THROWS(cat.asReal());
-	REQUIRE_THROWS(cat.asBool());
-
-	REQUIRE(vecBinary.size() == 10);
-	REQUIRE(vecReal.size() == 10);
-	REQUIRE(vecCat.size() == 10);
-
-	REQUIRE(binary.size() == 1);
-	REQUIRE(real.size() == 1);
-	REQUIRE(cat.size() == 1);
-
-	REQUIRE(vecBinary.begin() != vecBinary.end());
-	REQUIRE(vecReal.begin() != vecReal.end());
-	REQUIRE(vecCat.begin() != vecCat.end());
-
-	REQUIRE(vecBinary.end() - vecBinary.begin() == vecBinary.size());
-	REQUIRE(vecReal.end() - vecReal.begin() == vecReal.size());
-	REQUIRE(vecCat.end() - vecCat.begin() == vecCat.size());
-
-	REQUIRE_NOTHROW(vecBinary[1].type() == VType::Bool);
-	REQUIRE_NOTHROW(vecReal[1].type() == VType::Real);
-	REQUIRE_NOTHROW(vecCat[1].type() == VType::Int);
-
-	REQUIRE_THROWS(binary[1]);
-	REQUIRE_THROWS(real[1]);
-	REQUIRE_THROWS(cat[1]);
-
-	REQUIRE_THROWS(vecBinary[11]);
-	REQUIRE_THROWS(vecReal[11]);
-	REQUIRE_THROWS(vecCat[11]);
+	REQUIRE((val0.end() - val0.begin()) == val0.size());
 
 	{
-		auto it = vecCat.begin();
-		auto last = vecCat.end();
+		auto it = val0.begin();
+		auto last = val0.end();
 
 		for (; it != last; ++it) {
 			ValueRef ref = *it;
-			REQUIRE(ref.type() == VType::Int);
-			REQUIRE(ref.isInt());
+			REQUIRE(ref.type() == VType::i32);
 			REQUIRE(ref == 0);
 		}
 	}
 }
 
 TEST_CASE("Value move, copy, equality", "[value]") {
-	Value binary = Value::MakeBool(false);
-	Value real = Value::MakeReal(0.0);
-	Value cat = Value::MakeInt(0);
+	Value binary(false);
+	Value real(0.0);
+	Value cat(0);
 
-	Value vecBinary = Value::MakeBool(false, 10);
-	Value vecReal = Value::MakeReal(0.0, 10);
-	Value vecCat = Value::MakeInt(0, 10);
+	Value vecBinary(false, dim_t{10, 1, 1, 1});
+	Value vecReal(0.0, dim_t{ 10, 1, 1, 1 });
+	Value vecCat (0, dim_t{ 10, 1, 1, 1 });
 
 	Value binaryCopy = binary;
 	Value realCopy = real;
 	Value catCopy = cat;
 
-	REQUIRE(binaryCopy.isBool());
-	REQUIRE(realCopy.isReal());
-	REQUIRE(catCopy.isInt());
-
-	REQUIRE(binary.asBool() == binaryCopy.asBool());
-	REQUIRE(real.asReal() == realCopy.asReal());
-	REQUIRE(cat.asInt() == catCopy.asInt());
+	REQUIRE(binaryCopy.type() == ValueType::b8);
+	REQUIRE(realCopy.type() == ValueType::f64);
+	REQUIRE(catCopy.type() == ValueType::i32);
 
 	REQUIRE(binary == binaryCopy);
 	REQUIRE(real == realCopy);

@@ -8,48 +8,17 @@ namespace gdev {
 	using iterator = Value::iterator;
 	using const_iterator = Value::const_iterator;
 
-	iterator::operator bool* () {
-		if(type != ValueType::Bool) {
-			throw std::logic_error("Invalid type conversion for Value::iterator!");
-		}
-		return (bool *) data;
-	}
-	iterator::operator int* () {
-		if (type != ValueType::Int) {
-			throw std::logic_error("Invalid type conversion for Value::iterator!");
-		}
-		return (int*)data;
-	}
-	iterator::operator double* () {
-		if (type != ValueType::Real) {
-			throw std::logic_error("Invalid type conversion for Value::iterator!");
-		}
-		return (double*)data;
-	}
-
 
 	iterator::iterator() noexcept
 		: data(nullptr)
 		, step(0)
-		, type(ValueType::Bool)
+		, type(ValueType::b8)
 	{}
 	iterator::iterator(void* _data, ValueType _type) noexcept
 		: data((char*)_data)
 		, type(_type)
-	{
-		switch (type) {
-		default:
-		case ValueType::Bool:
-			step = sizeof(bool);
-			break;
-		case ValueType::Int:
-			step = sizeof(int);
-			break;
-		case ValueType::Real:
-			step = sizeof(double);
-			break;
-		}
-	}
+		, step(SizeOf(_type))
+	{}
 
 	bool iterator::operator==(const iterator& other) const noexcept {
 		return data == other.data;
@@ -128,48 +97,16 @@ namespace gdev {
 
 
 
-
-	const_iterator::operator const bool* () {
-		if (type != ValueType::Bool) {
-			throw std::logic_error("Invalid type conversion for Value::iterator!");
-		}
-		return (bool*)data;
-	}
-	const_iterator::operator const int* () {
-		if (type != ValueType::Int) {
-			throw std::logic_error("Invalid type conversion for Value::iterator!");
-		}
-		return (int*)data;
-	}
-	const_iterator::operator const double* () {
-		if (type != ValueType::Real) {
-			throw std::logic_error("Invalid type conversion for Value::iterator!");
-		}
-		return (double*)data;
-	}
-
 	const_iterator::const_iterator() noexcept
 		: data(nullptr)
 		, step(0)
-		, type(ValueType::Bool)
+		, type(ValueType::b8)
 	{}
 	const_iterator::const_iterator(const void* _data, ValueType _type) noexcept
 		: data((char*)_data)
 		, type(_type)
-	{
-		switch (type) {
-		default:
-		case ValueType::Bool:
-			step = sizeof(bool);
-			break;
-		case ValueType::Int:
-			step = sizeof(int);
-			break;
-		case ValueType::Real:
-			step = sizeof(double);
-			break;
-		}
-	}
+		, step(SizeOf(_type))
+	{}
 	const_iterator::const_iterator(iterator other) noexcept
 		: data(other.data)
 		, step(other.step)

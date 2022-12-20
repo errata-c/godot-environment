@@ -6,7 +6,6 @@ project(GODOT_ENVIRONMENT
 	DESCRIPTION "A framework for building reinforcement learning environments using the Godot game engine."
 )
 
-option(GODOT_ENVIRONMENT_BUILD_TESTS "Build the tests for godot-environment" OFF)
 set(GODOT_ENVIRONMENT_CONFIG_DIR "share/godot-environment" CACHE STRING "The relative destination of the configuration files")
 
 include(GNUInstallDirs)
@@ -41,7 +40,7 @@ add_subdirectory("agent")
 
 # Create the RL environment library, contains the necessary integration with the godot game engine.
 # adds gdev::environment target
-add_subdirectory("environment")
+#add_subdirectory("environment")
 
 if(PROJECT_IS_TOP_LEVEL)
 	include(CTest)

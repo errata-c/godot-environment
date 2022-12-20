@@ -16,34 +16,26 @@ int main() {
 	fs::path projectDir = pendulum_project_dir;
 
 	gdev::Agent agent;
-	if (agent.hasEnvironment()) {
+	if (agent.isOpen()) {
 		std::cerr << "Agent is reporting it has an environment prior to createEnvironment call!\n";
 		return -1;
 	}
-	if (agent.numInstances() != 0) {
-		std::cerr << "Agent is reporting the incorrect number of instances!\n";
-		return -1;
-	}
 
-	if (!agent.createEnvironment(godot, projectDir, sceneFile, 1)) {
+	if (!agent.open(godot, projectDir, sceneFile)) {
 		std::cerr << "Failed to create the environment!\n";
 		std::cerr << "The executable was '" << godot << "'\n";
 		std::cerr << "The scene file was '" << sceneFile << "'\n";
 		return -1;
 	}
 
-	if (!agent.hasEnvironment()) {
+	if (!agent.isOpen()) {
 		std::cerr << "Agent is incorrectly reporting that it does not have an environment after createEnvironment returned true!\n";
 		return -1;
 	}
-	if (agent.numInstances() != 1) {
-		std::cerr << "Agent is reporting the incorrect number of instances!\n";
-		return -1;
-	}
 
-	gdev::Space action = agent.actionSpace().instance();
-	action["force"].asReal() = 0.f;
-
+	gdev::Space action{
+		std::make_pair("force", 0.0)
+	};
 
 	std::mt19937 gen(std::random_device{}());
 	std::uniform_real_distribution<> dist(-1.f, 1.f);
@@ -52,15 +44,15 @@ int main() {
 	std::cout << "\nBeginning the RL training loop" << std::endl;
 
 	// Run the main loop for the control
-	gdev::Step step = agent.reset(0);
+	gdev::Step step = agent.reset();
 	std::cout << "Received the first step data from the environment" << std::endl;
 
 	auto startTime = steady_clock::now();
 
 	std::size_t cycles = 0;
 	while ((steady_clock::now() - startTime) < chrono::seconds(10)) {
-		action["force"].asReal() = dist(gen)* 0.4f;
-		step = agent.step(0, action);
+		action["force"].at(0).as<double>() = dist(gen) * 0.4f;
+		step = agent.step(action);
 		++cycles;
 	}
 	agent.close();

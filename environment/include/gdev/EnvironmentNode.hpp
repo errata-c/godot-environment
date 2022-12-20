@@ -11,7 +11,8 @@
 
 namespace godot {
 	/*
-
+	The main node to facilitate communication between an agent running in a different process and the actual environment in godot.
+	This node must be instanced just once in a scene.
 	*/
 	class EnvironmentNode: public Node {
 		GODOT_CLASS(EnvironmentNode, Node)
@@ -56,6 +57,7 @@ namespace godot {
 
 		// Print the current definition of the action space, useful for debugging.
 		void print_action_space_def();
+
 		// Print the current definition of the observation space, useful for debugging.
 		void print_observation_space_def();
 
@@ -83,13 +85,11 @@ namespace godot {
 		};
 	private:
 		gdev::MessageContext mcontext;
-		std::string buffer;
+		std::string mbuffer;
 		
-		gdev::SpaceDef acSpace, obSpace;
+		gdev::SpaceDef maction_space_def, mobservation_space_def;
+		Instance minstance;
 
-		int32_t currentIndex;
-		std::vector<Instance> instances;
-
-		void prepareInstances(int numInstances, const Ref<PackedScene> & scene);
+		void prepareInstance(const Ref<PackedScene> & scene);
 	};
 }
