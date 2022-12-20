@@ -28,8 +28,8 @@ namespace gdev {
 
 			auto it = (const T*)_val.data();
 			auto last = it + _val.elements();
-			for (; it != last; ++it) {
-				value(*it, buffer);
+			while (it != last) {
+				value(*it++, buffer);
 			}
 		}
 	};
@@ -45,7 +45,7 @@ namespace gdev {
 
 	struct _deserialize_func {
 		template<typename T>
-		static void apply(Value& _val, const char* buffer, const char* buffer_end) {
+		static const char* apply(Value& _val, const char* buffer, const char* buffer_end) {
 			using b8_deserialize::value;
 			using ez::deserialize::value;
 
@@ -55,6 +55,7 @@ namespace gdev {
 			for (; it != end; ++it) {
 				buffer = value(buffer, buffer_end, *it);
 			}
+			return buffer;
 		}
 	};
 	const char* deserialize(const char* buffer, const char* end, Value& value) {
@@ -69,7 +70,7 @@ namespace gdev {
 
 		value = Value::Uninitialized(dims, type);
 
-		visitors::single_visit<_deserialize_func>(type, value, buffer, end);
+		buffer = visitors::single_visit<_deserialize_func>(type, value, buffer, end);
 
 		return buffer;
 	}

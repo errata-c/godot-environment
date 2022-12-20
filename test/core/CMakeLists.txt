@@ -2,7 +2,10 @@
 include(Catch)
 
 add_executable(gdev_core_test 
-	"value.cpp"
+	"value/init.cpp"
+	"value/move.cpp"
+	"value/access.cpp"
+
 	"space.cpp"
 	"serialization.cpp"
 	"communication.cpp"

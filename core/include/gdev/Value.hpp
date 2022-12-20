@@ -80,6 +80,8 @@ public:
 		std::size_t elements() const noexcept;
 		std::size_t bytes() const noexcept;
 
+		bool empty() const noexcept;
+
 		Type type() const noexcept;
 
 		ValueRef at(int i0);

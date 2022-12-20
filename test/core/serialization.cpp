@@ -10,36 +10,28 @@
 
 
 TEST_CASE("serialize values") {
-	std::vector<gdev::Value> values{{
+	auto value = GENERATE(
 		gdev::Value(true),
 		gdev::Value(0.5),
 		gdev::Value(2),
 
-		gdev::Value(true, gdev::dim_t{10,1,1,1}),
-		gdev::Value(0.5, gdev::dim_t{10,1,1,1}),
-		gdev::Value(2, gdev::dim_t{10,1,1,1})
-	}};
+		gdev::Value(true, gdev::dim_t{ 10,1,1,1 }),
+		gdev::Value(0.5, gdev::dim_t{ 10,1,1,1 }),
+		gdev::Value(2, gdev::dim_t{ 10,1,1,1 })
+	);
 
 	std::string buffer;
-	for (gdev::Value & val : values) {
-		gdev::serialize(val, buffer);
-	}
+	gdev::serialize(value, buffer);
+
+	gdev::Value regen;
 	
-	std::vector<gdev::Value> regen(values.size(), gdev::Value{});
-	
-	const char* data = buffer.data(), * end = buffer.data() + buffer.size();
-	for (gdev::Value & value: regen) {
-		const char* prev = data;
+	const char* data = buffer.data();
+	const char* end = buffer.data() + buffer.size();
 
-		REQUIRE_NOTHROW(data = gdev::deserialize(data, end, value));
-		REQUIRE(prev != data);
-	}
+	const char * read_end = gdev::deserialize(data, end, regen);
+	REQUIRE((read_end - data) == (end - data));
 
-	REQUIRE(values.size() == regen.size());
-
-	for (std::size_t i = 0; i < values.size(); ++i) {
-		REQUIRE(values[i] == regen[i]);
-	}
+	REQUIRE(value == regen);
 }
 
 TEST_CASE("Serialize space") {

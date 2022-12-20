@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <cinttypes>
 #include <cassert>
+#include <stdexcept>
 
 #include <string>
 #include <string_view>
@@ -128,6 +129,8 @@ namespace gdev {
 			case ValueType::f64:
 				return Func::apply<double>( std::forward<Ts>(args)...);
 
+			default:
+				throw std::logic_error("Unreachable!");
 			}
 		}
 

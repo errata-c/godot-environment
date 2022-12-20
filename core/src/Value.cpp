@@ -24,7 +24,9 @@ namespace gdev {
 		: mdims(other.mdims)
 		, mtype(other.type())
 		, mdata(std::move(other.mdata))
-	{}
+	{
+		other.mdims = dim_t{0, 1, 1, 1};
+	}
 	Value& Value::operator=(const Value& other) {
 		Value::~Value();
 		new (this) Value(other);
@@ -46,6 +48,9 @@ namespace gdev {
 	std::size_t Value::bytes() const noexcept {
 		return size() * SizeOf(type());
 	}
+	bool Value::empty() const noexcept {
+		return bool(mdata);
+	}
 
 	ValueType Value::type() const noexcept {
 		return mtype;
@@ -55,18 +60,23 @@ namespace gdev {
 	struct EqualVisit {
 		template<typename A, typename B>
 		static bool apply(const Value& lh, const Value& rh) {
-			size_t count = lh.size();
-			const A* ours = (const A*)lh.data();
-			const A* last = ours + count;
-
-			const B* theirs = (const B*)rh.data();
-			
-			for (; ours != last; ++ours, ++theirs) {
-				if (*ours != *theirs) {
-					return false;
-				}
+			if constexpr (std::is_same_v<A, bool> != std::is_same_v<B, bool>) {
+				throw std::logic_error("gdev::Value unsafe comparison operation!");
 			}
-			return true;
+			else {
+				size_t count = lh.size();
+				const A* ours = (const A*)lh.data();
+				const A* last = ours + count;
+
+				const B* theirs = (const B*)rh.data();
+
+				for (; ours != last; ++ours, ++theirs) {
+					if (*ours != *theirs) {
+						return false;
+					}
+				}
+				return true;
+			}
 		}
 	};
 	bool Value::equal(const Value& other) const noexcept {
@@ -74,7 +84,7 @@ namespace gdev {
 			return false;
 		}
 
-		visitors::double_visit<EqualVisit>(type(), other.type(), *this, other);
+		return visitors::double_visit<EqualVisit>(type(), other.type(), *this, other);
 	}
 	bool Value::nequal(const Value& other) const noexcept {
 		return !equal(other);
