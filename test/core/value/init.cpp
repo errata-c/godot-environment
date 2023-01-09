@@ -122,7 +122,7 @@ TEST_CASE("Value b8", "[value]") {
 }
 
 TEST_CASE("Value instantiation", "[value]") {
-	Value val0(0, dim_t{ 10,1,1,1 }, ValueType::i32);
+	Value val0(dim_t{ 10,1,1,1 }, 0, ValueType::i32);
 
 	REQUIRE(val0.elements() == 10);
 	REQUIRE(val0.begin() != val0.end());
@@ -141,3 +141,15 @@ TEST_CASE("Value instantiation", "[value]") {
 	}
 }
 
+TEST_CASE("Value iterator initialization", "[value]") {
+	std::vector<int> tmp{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	Value val(tmp.begin(), tmp.end());
+
+	REQUIRE(val.elements() == 10);
+	REQUIRE(val.dim(0) == 10);
+
+	for (int i = 0; i < 10; ++i) {
+		CAPTURE(i);
+		REQUIRE(val[i] == i);
+	}
+}

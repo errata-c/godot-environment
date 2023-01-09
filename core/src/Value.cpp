@@ -4,6 +4,7 @@
 #include <cmath>
 #include <limits>
 #include <cassert>
+#include <ostream>
 
 namespace gdev {
 	using iterator = Value::iterator;
@@ -90,45 +91,71 @@ namespace gdev {
 		return !equal(other);
 	}
 
-	ValueRef Value::at(int i) {
-		if (i >= size()) {
+	ValueRef Value::at(std::size_t i) {
+		if (i < 0 || i >= size()) {
 			throw std::out_of_range("Access out of bounds element in Value Vector!");
 		}
 		
 		return ValueRef(data() + SizeOf(type()) * i, type());
 	}
-	ConstValueRef Value::at(int i) const {
-		if (i >= size()) {
+	ConstValueRef Value::at(std::size_t i) const {
+		if (i < 0 || i >= size()) {
 			throw std::out_of_range("Access out of bounds element in Value Vector!");
 		}
 		return ConstValueRef(data() + SizeOf(type()) * i, type());
 	}
 
-	ValueRef Value::at(int i0, int i1) {
+	ValueRef Value::at(std::size_t i0, std::size_t i1) {
 		return at(i0 + dim(0) * i1);
 	}
-	ConstValueRef Value::at(int i0, int i1) const {
+	ConstValueRef Value::at(std::size_t i0, std::size_t i1) const {
 		return at(i0 + dim(0) * i1);
 	}
 
-	ValueRef Value::at(int i0, int i1, int i2) {
+	ValueRef Value::at(std::size_t i0, std::size_t i1, std::size_t i2) {
 		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2);
 	}
-	ConstValueRef Value::at(int i0, int i1, int i2) const {
+	ConstValueRef Value::at(std::size_t i0, std::size_t i1, std::size_t i2) const {
 		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2);
 	}
 
-	ValueRef Value::at(int i0, int i1, int i2, int i3) {
+	ValueRef Value::at(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3) {
 		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2 + dim(0) * dim(1) * dim(2) * i3);
 	}
-	ConstValueRef Value::at(int i0, int i1, int i2, int i3) const {
+	ConstValueRef Value::at(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3) const {
 		return at(i0 + dim(0) * i1 + dim(0) * dim(1) * i2 + dim(0) * dim(1) * dim(2) * i3);
 	}
 
-	ValueRef Value::operator[](int i){
+	ValueRef Value::operator()(std::size_t i0) {
+		return at(i0);
+	}
+	ValueRef Value::operator()(std::size_t i0, std::size_t i1) {
+		return at(i0, i1);
+	}
+	ValueRef Value::operator()(std::size_t i0, std::size_t i1, std::size_t i2) {
+		return at(i0, i1, i2);
+	}
+	ValueRef Value::operator()(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3) {
+		return at(i0, i1, i2, i3);
+	}
+
+	ConstValueRef Value::operator()(std::size_t i0) const {
+		return at(i0);
+	}
+	ConstValueRef Value::operator()(std::size_t i0, std::size_t i1) const {
+		return at(i0, i1);
+	}
+	ConstValueRef Value::operator()(std::size_t i0, std::size_t i1, std::size_t i2) const {
+		return at(i0, i1, i2);
+	}
+	ConstValueRef Value::operator()(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3) const {
+		return at(i0, i1, i2, i3);
+	}
+
+	ValueRef Value::operator[](std::size_t i){
 		return at(i);
 	}
-	ConstValueRef Value::operator[](int i) const {
+	ConstValueRef Value::operator[](std::size_t i) const {
 		return at(i);
 	}
 
@@ -158,16 +185,16 @@ namespace gdev {
 	dim_t Value::dims() const noexcept {
 		return mdims;
 	}
-	int Value::dim(int index) const noexcept {
+	std::size_t Value::dim(std::size_t index) const noexcept {
 		return mdims[index];
 	}
-	int Value::width() const noexcept {
+	std::size_t Value::width() const noexcept {
 		return mdims[0];
 	}
-	int Value::height() const noexcept {
+	std::size_t Value::height() const noexcept {
 		return mdims[1];
 	}
-	int Value::numDims() const noexcept {
+	std::size_t Value::numDims() const noexcept {
 		int count = 0;
 		for (int d : mdims) {
 			if (d > 1) {
@@ -202,4 +229,17 @@ namespace gdev {
 	void Value::allocate() {
 		mdata.reset(new char[bytes()]);
 	}
+}
+
+// Type specific implementation of the print setup
+struct _printer {
+	template<typename T>
+	static void apply(std::ostream& os, const gdev::Value& value) {
+			
+	}
+};
+std::ostream& operator<<(std::ostream& os, const gdev::Value& value) {
+	gdev::visitors::single_visit<_printer>(value.type(), os, value);
+
+	return os;
 }

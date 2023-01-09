@@ -1,13 +1,20 @@
-A better method of initialization for the environments is needed, specifically one where a dictionary of initialization parameters can be passed over to configure the environment.
-
-Create a `gdscript` class to represent action or observation spaces, provide a `_get` method to get members of the space easily.
-
-Create a `gdscript` class to represent a reference to values within the action or observation space, provide a get and set method for accessing data within it. Provide methods to access subsets of the value tensor (`row`, `col`, `slice`), which should accept integers or arrays of integers to select the specific subset (the built-in `range` function returns an Array).
-
-
-
-The Space class has been simplified.
-
-Expand the Value class to include a range for the values. Give it the ability to represent any of a set of fundamental types. Give it a range of different constructors and assignment capabilities.
-
-Test its new capabilities. Provide a mechanism for static binding of the value class and the space class, such that a concrete interface is given for the exact types, and the exact elements of the space.
+- [x] Simplify the `Space` class
+- [x] Simplify the `Value` class
+- [x] Expand the `Value` class types
+- [ ] Give the `Value` class a range for its values (Clamp or verify ranges?)
+- [x] Give `Value` class assignment capabilities
+- [x] Test the `Value` class assignment methods and constructors
+- [ ] Create static binding wrapper for the `Value` class
+- [ ] Create static binding wrapper for the `Space` class (More difficult, requires macros...)
+- [ ] Provide optional initialization parameter passing to the environment
+- [ ] Make dictionary in Godot for the `Space`
+- [ ] Make a `Value` wrapper in Godot
+  - [ ] Create reference class for subset of value (accepting dynamic iterator type to identify selection)
+  - [ ] Method for accessing elements via Array of indices
+  - [ ] Method for accessing elements via single index
+  - [ ] Method for accessing elements via multidimensional indices
+  - [ ] `slice` accessor
+  - [ ] `row` accessor
+  - [ ] `col` accessor
+  - [ ] Iteration capabilities for value and reference
+- [ ] Change all the existing environment examples to work with the new setup

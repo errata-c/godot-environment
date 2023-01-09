@@ -35,10 +35,10 @@ namespace gdev {
 	};
 	void serialize(const Value& value, std::string& buffer) {
 		ez::serialize::enumerator(value.type(), buffer);
-		ez::serialize::i32(value.dim(0), buffer);
-		ez::serialize::i32(value.dim(1), buffer);
-		ez::serialize::i32(value.dim(2), buffer);
-		ez::serialize::i32(value.dim(3), buffer);
+		ez::serialize::u64(value.dim(0), buffer);
+		ez::serialize::u64(value.dim(1), buffer);
+		ez::serialize::u64(value.dim(2), buffer);
+		ez::serialize::u64(value.dim(3), buffer);
 
 		visitors::single_visit<_serialize_func>(value.type(), value, buffer);
 	}
@@ -62,11 +62,16 @@ namespace gdev {
 		ValueType type;
 		buffer = ez::deserialize::enumerator(buffer, end, type);
 
+		// Just in case std::size_t is not u64
+		std::array<uint64_t, 4> tmp;
 		dim_t dims;
-		buffer = ez::deserialize::i32(buffer, end, dims[0]);
-		buffer = ez::deserialize::i32(buffer, end, dims[1]);
-		buffer = ez::deserialize::i32(buffer, end, dims[2]);
-		buffer = ez::deserialize::i32(buffer, end, dims[3]);
+		buffer = ez::deserialize::u64(buffer, end, tmp[0]);
+		buffer = ez::deserialize::u64(buffer, end, tmp[1]);
+		buffer = ez::deserialize::u64(buffer, end, tmp[2]);
+		buffer = ez::deserialize::u64(buffer, end, tmp[3]);
+		for (int i = 0; i < 4; ++i) {
+			dims[i] = tmp[i];
+		}
 
 		value = Value::Uninitialized(dims, type);
 

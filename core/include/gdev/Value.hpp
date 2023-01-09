@@ -10,6 +10,8 @@
 #include <memory>
 #include <initializer_list>
 #include <type_traits>
+#include <iterator>
+#include <iosfwd>
 
 namespace gdev {
 	class Value {
@@ -42,12 +44,12 @@ public:
 		// Single value constructor
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 		Value(const T& val, ValueType id = ValueTypeTraits<T>::id)
-			: Value(val, dim_t{1,1,1,1}, id)
+			: Value(dim_t{1,1,1,1}, val, id)
 		{}
 
 		// Single value dimensioned constructor
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
-		Value(const T& val, dim_t dims, ValueType id = ValueTypeTraits<T>::id)
+		Value(dim_t dims, const T& val, ValueType id = ValueTypeTraits<T>::id)
 			: mtype(id)
 			, mdims{ dims }
 		{
@@ -58,22 +60,79 @@ public:
 		// flat initializer list constructor
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 		Value(std::initializer_list<T> init, ValueType id = ValueTypeTraits<T>::id)
-			: Value(init, dim_t{init.size(), 1, 1, 1}, id)
+			: Value(dim_t{init.size(), 1, 1, 1}, init.begin(), init.end(), id)
 		{}
 
 		// Dimensioned initializer list constructor
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
-		Value(std::initializer_list<T> init, dim_t dims, ValueType id = ValueTypeTraits<T>::id)
+		Value(dim_t dims, std::initializer_list<T> init, ValueType id = ValueTypeTraits<T>::id)
 			: mtype(id)
 			, mdims(dims)
 		{
-			allocate();
+			assert(elements() == init.size());
 
+			allocate();
+			visitors::single_visit<AssignFunc>(type(), data(), data() + bytes(), init.begin(), init.end());
+		}
+
+		template<typename InputIt, typename = typename std::iterator_traits<InputIt>::iterator_category>
+		Value(dim_t dims, InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id)
+			: mtype(id)
+			, mdims{dims}
+		{
+			assert(elements() == init.size());
+
+			allocate();
+			visitors::single_visit<AssignFunc>(type(), data(), data() + bytes(), first, last);
+		}
+
+		template<typename It, typename = typename std::iterator_traits<It>::iterator_category>
+		Value(It first, It last, ValueType id = ValueTypeTraits<typename std::iterator_traits<It>::value_type>::id)
+		{
+			auto dist = std::distance(first, last);
+			assert(dist > 0);
+			assign(dim_t{static_cast<std::size_t>(dist), 1, 1, 1}, first, last, id);
 		}
 
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 		void fill(const T& val) {
 			visitors::single_visit<FillFunc>(type(), data(), data() + bytes(), val);
+		}
+
+		template<typename T>
+		void assign(dim_t dims, const T& value, ValueType id = ValueTypeTraits<T>::id) {
+			mdims = dims;
+			mtype = id;
+			allocate();
+			fill(value);
+		}
+
+		// Specific implementation for input iterators, no choice but to copy into a temporary buffer because no multi-pass
+		template<typename InputIt, std::enable_if_t<std::is_same_v<typename std::iterator_traits<InputIt>::iterator_category, std::input_iterator_tag>, int> = 0>
+		void assign(InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id) {
+			std::vector<typename std::iterator_traits<InputIt>::value_type> tmp(first, last);
+			assign(dim_t{ tmp.size(), 1, 1, 1 }, tmp.begin(), tmp.end(), id);
+		}
+		// Implementation for all iterators that are NOT input iterators
+		template<typename Iter, std::enable_if_t<!std::is_same_v<typename std::iterator_traits<Iter>::iterator_category, std::input_iterator_tag>, int> = 0>
+		void assign(Iter first, Iter last, ValueType id = ValueTypeTraits<typename std::iterator_traits<Iter>::value_type>::id) {
+			assign(dim_t{std::distance(first, last), 1, 1, 1}, first, last, id);
+		}
+		// Implementation available for all iterator types
+		template<typename InputIt, typename = typename std::iterator_traits<InputIt>::iterator_category>
+		void assign(dim_t dims, InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id) {
+			mdims = dims;
+			mtype = id;
+			allocate();
+			visitors::single_visit<AssignFunc>(type(), data(), data() + bytes(), first, last);
+		}
+		template<typename T>
+		void assign(std::initializer_list<T> ilist, ValueType id = ValueTypeTraits<T>::id) {
+			assign(dim_t{ilist.size(), 1, 1, 1}, ilist.begin(), ilist.end(), id);
+		}
+		template<typename T>
+		void assign(dim_t dims, std::initializer_list<T> ilist, ValueType id = ValueTypeTraits<T>::id) {
+			assign(dims, ilist.begin(), ilist.end(), id);
 		}
 
 		std::size_t size() const noexcept;
@@ -84,20 +143,28 @@ public:
 
 		Type type() const noexcept;
 
-		ValueRef at(int i0);
-		ConstValueRef at(int i0) const;
+		ValueRef at(std::size_t i0);
+		ValueRef at(std::size_t i0, std::size_t i1);
+		ValueRef at(std::size_t i0, std::size_t i1, std::size_t i2);
+		ValueRef at(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3);
 
-		ValueRef at(int i0, int i1);
-		ConstValueRef at(int i0, int i1) const;
+		ConstValueRef at(std::size_t i0) const;
+		ConstValueRef at(std::size_t i0, std::size_t i1) const;
+		ConstValueRef at(std::size_t i0, std::size_t i1, std::size_t i2) const;
+		ConstValueRef at(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3) const;
 
-		ValueRef at(int i0, int i1, int i2);
-		ConstValueRef at(int i0, int i1, int i2) const;
+		ValueRef operator[](std::size_t index);
+		ConstValueRef operator[](std::size_t index) const;
 
-		ValueRef at(int i0, int i1, int i2, int i3);
-		ConstValueRef at(int i0, int i1, int i2, int i3) const;
+		ValueRef operator()(std::size_t i0);
+		ValueRef operator()(std::size_t i0, std::size_t i1);
+		ValueRef operator()(std::size_t i0, std::size_t i1, std::size_t i2);
+		ValueRef operator()(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3);
 
-		ValueRef operator[](int index);
-		ConstValueRef operator[](int index) const;
+		ConstValueRef operator()(std::size_t i0) const;
+		ConstValueRef operator()(std::size_t i0, std::size_t i1) const;
+		ConstValueRef operator()(std::size_t i0, std::size_t i1, std::size_t i2) const;
+		ConstValueRef operator()(std::size_t i0, std::size_t i1, std::size_t i2, std::size_t i3) const;
 
 		bool equal(const Value & other) const noexcept;
 		bool nequal(const Value & other) const noexcept;
@@ -116,13 +183,13 @@ public:
 		// Return all the dimensions as a array with 4 elements
 		dim_t dims() const noexcept;
 		// Return the dimension at index
-		int dim(int index) const noexcept;
+		std::size_t dim(std::size_t index) const noexcept;
 		// Return the width of the tensor, same as dim(0)
-		int width() const noexcept;
+		std::size_t width() const noexcept;
 		// Return the height of the tensor, same as dim(1)
-		int height() const noexcept;
+		std::size_t height() const noexcept;
 		// Return the number of dimensions larger than 1
-		int numDims() const noexcept;
+		std::size_t numDims() const noexcept;
 
 		// Attempt to change the dimensions of this tensor, without changing the order of the elements
 		// Throws an exception if the number of elements would be changed by changing the dims
@@ -153,8 +220,10 @@ public:
 			static void apply(char* _data_first, char* _data_last, InputIt first, InputIt last) {
 				auto data_first = (T1*)_data_first;
 				auto data_last = (T1*)_data_last;
-				for (; first != last && data_first != data_last; ++data_first, ++first) {
+				while (first != last && data_first != data_last) {
 					*data_first = static_cast<T1>(*first);
+					++data_first;
+					++first;
 				}
 			}
 		};
@@ -199,7 +268,7 @@ public:
 			difference_type operator-(iterator offset) const noexcept;
 		private:
 			friend struct const_iterator;
-			int step;
+			std::size_t step;
 			ValueType type;
 			char * data;
 		};
@@ -245,7 +314,7 @@ public:
 
 			difference_type operator-(const_iterator offset) const noexcept;
 		private:
-			int step;
+			std::size_t step;
 			ValueType type;
 			const char* data;
 		};
@@ -254,11 +323,13 @@ public:
 	using ValueType = Value::Type;
 }
 
-bool operator==(bool lh, const gdev::Value& rh) noexcept;
-bool operator!=(bool lh, const gdev::Value& rh) noexcept;
+template<typename T, gdev::ValueType = gdev::ValueTypeTraits<T>::id>
+bool operator==(const T& lh, const gdev::Value& rh) {
+	return rh == lh;
+}
+template<typename T, gdev::ValueType = gdev::ValueTypeTraits<T>::id>
+bool operator!=(const T& lh, const gdev::Value& rh) {
+	return rh != lh;
+}
 
-bool operator==(int lh, const gdev::Value& rh) noexcept;
-bool operator!=(int lh, const gdev::Value& rh) noexcept;
-
-bool operator==(double lh, const gdev::Value& rh) noexcept;
-bool operator!=(double lh, const gdev::Value& rh) noexcept;
+std::ostream& operator<<(std::ostream&os, const gdev::Value & value);

@@ -9,7 +9,7 @@
 #include <iosfwd>
 
 namespace gdev {
-	using dim_t = std::array<int, 4>;
+	using dim_t = std::array<size_t, 4>;
 
 	enum class ValueType {
 		b8, // boolean
