@@ -56,7 +56,7 @@ namespace gdev {
 		}
 
 		// The initialize the message context
-		result = mcontext.initialize(port);
+		result = mcontext.connect(port);
 		if (!result) {
 			return false;
 		}

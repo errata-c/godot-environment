@@ -17,7 +17,7 @@ target_compile_features(gdev-core PUBLIC
 	cxx_std_17
 )
 target_link_libraries(gdev-core PUBLIC 
-	cppzmq
+	libzmq
 	ez::serialize
 	fmt::fmt
 )

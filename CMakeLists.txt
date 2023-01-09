@@ -25,7 +25,7 @@ find_package(ez-serialize CONFIG REQUIRED)
 find_package(godot-cpp 3 CONFIG REQUIRED)
 
 # Used to facilitate the request reply loop between the agent and the environment.
-find_package(cppzmq CONFIG REQUIRED)
+find_package(ZeroMQ CONFIG REQUIRED)
 
 # Used for printing
 find_package(fmt CONFIG REQUIRED)

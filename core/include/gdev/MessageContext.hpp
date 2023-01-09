@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <cinttypes>
-#include <zmq.hpp>
 
 namespace gdev {
 	// What end of the communications are we?
@@ -40,7 +39,7 @@ namespace gdev {
 		bool isValid() const noexcept;
 		bool isConnected() const noexcept;
 		
-		bool initialize(int _port);
+		bool connect(int _port);
 		void disconnect();
 
 		// Attempt to send a buffer of data to the other context.
@@ -49,19 +48,13 @@ namespace gdev {
 		// Attempt to receive a buffer of data from the other context.
 		bool recv(std::string & buffer);
 
-		// Send a ping message to check if the server is ready.
-		bool sendPing();
-
-		// Check for a ping reply.
-		bool checkPing();
-
 		int port() const noexcept;
 	private:
 		Com type;
 		int mport;
 		std::string address;
 
-		zmq::context_t ctx;
-		zmq::socket_t socket;
+		void* ctx;
+		void*  socket;
 	};
 }
