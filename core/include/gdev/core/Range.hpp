@@ -42,6 +42,25 @@ namespace gdev {
 		TRange& operator=(const TRange&) noexcept = default;
 		TRange& operator=(TRange&&) noexcept = default;
 
+		const T& operator[](int i) const noexcept {
+			assert(i == 0 || i == 1);
+			if (i == 0) {
+				return min;
+			}
+			else {
+				return max;
+			}
+		}
+		T& operator[](int i) noexcept {
+			assert(i == 0 || i == 1);
+			if (i == 0) {
+				return min;
+			}
+			else {
+				return max;
+			}
+		}
+
 		T span() const noexcept {
 			return max - min;
 		}
@@ -202,4 +221,6 @@ namespace gdev {
 	private:
 		T min, max;
 	};
+
+	using range_t = TRange<double>;
 }

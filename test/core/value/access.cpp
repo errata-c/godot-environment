@@ -5,7 +5,7 @@ using namespace gdev;
 using VType = gdev::ValueType;
 
 TEST_CASE("Value array access", "[value]") {
-	Value test(dim_t{ 10,1,1,1 }, 0, VType::i32);
+	Value test(dims_t{ 10,1,1,1 }, 0, VType::i32);
 
 	for (int i = 0; i < 10; ++i) {
 		test[i] = i;
@@ -28,7 +28,7 @@ TEST_CASE("Value array access", "[value]") {
 }
 
 TEST_CASE("Value 2d access", "[value]") {
-	Value test(dim_t{ 10,10,1,1 }, 0, VType::i32);
+	Value test(dims_t{ 10,10,1,1 }, 0, VType::i32);
 
 	for (int i = 0; i < test.elements(); ++i) {
 		test[i] = i;

@@ -64,7 +64,7 @@ namespace gdev {
 
 		// Just in case std::size_t is not u64
 		std::array<uint64_t, 4> tmp;
-		dim_t dims;
+		dims_t dims;
 		buffer = ez::deserialize::u64(buffer, end, tmp[0]);
 		buffer = ez::deserialize::u64(buffer, end, tmp[1]);
 		buffer = ez::deserialize::u64(buffer, end, tmp[2]);
@@ -106,11 +106,13 @@ namespace gdev {
 	}
 
 
+	
 	void serializeStep(const gdev::Space& observation, float reward, bool done, std::string& buffer) {
 		ez::serialize::u8(uint8_t(done), buffer);
 		ez::serialize::f32(reward, buffer);
 		serialize(observation, buffer);
 	}
+	
 	const char* deserializeStep(const char* buffer, const char* end, gdev::Space& observation, float& reward, bool& done) {
 		uint8_t donetmp;
 		buffer = ez::deserialize::u8(buffer, end, donetmp);
@@ -119,4 +121,5 @@ namespace gdev {
 		buffer = ez::deserialize::f32(buffer, end, reward);
 		return deserialize(buffer, end, observation);
 	}
+	
 }

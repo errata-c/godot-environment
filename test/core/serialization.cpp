@@ -15,9 +15,9 @@ TEST_CASE("serialize values") {
 		gdev::Value(0.5),
 		gdev::Value(2),
 
-		gdev::Value(gdev::dim_t{ 10,1,1,1 }, true),
-		gdev::Value(gdev::dim_t{ 10,1,1,1 }, 0.5),
-		gdev::Value(gdev::dim_t{ 10,1,1,1 }, 2)
+		gdev::Value(gdev::dims_t{ 10,1,1,1 }, true),
+		gdev::Value(gdev::dims_t{ 10,1,1,1 }, 0.5),
+		gdev::Value(gdev::dims_t{ 10,1,1,1 }, 2)
 	);
 
 	std::string buffer;

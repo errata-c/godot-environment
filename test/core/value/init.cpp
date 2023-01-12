@@ -122,7 +122,7 @@ TEST_CASE("Value b8", "[value]") {
 }
 
 TEST_CASE("Value instantiation", "[value]") {
-	Value val0(dim_t{ 10,1,1,1 }, 0, ValueType::i32);
+	Value val0(dims_t{ 10,1,1,1 }, 0, ValueType::i32);
 
 	REQUIRE(val0.elements() == 10);
 	REQUIRE(val0.begin() != val0.end());

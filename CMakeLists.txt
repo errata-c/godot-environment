@@ -40,7 +40,7 @@ add_subdirectory("agent")
 
 # Create the RL environment library, contains the necessary integration with the godot game engine.
 # adds gdev::environment target
-#add_subdirectory("environment")
+add_subdirectory("environment")
 
 if(PROJECT_IS_TOP_LEVEL)
 	include(CTest)

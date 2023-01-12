@@ -2,6 +2,7 @@
 #include <gdev/ValueType.hpp>
 #include <gdev/ValueRef.hpp>
 #include <gdev/core/Range.hpp>
+#include <gdev/core/Dims.hpp>
 
 #include <cinttypes>
 #include <cstddef>
@@ -30,26 +31,26 @@ namespace gdev {
 
 private:
 		// Uninitialized constructor
-		Value(dim_t dims, ValueType id)
+		Value(dims_t dims, ValueType id)
 			: mtype(id)
 			, mdims{ dims }
 		{
 			allocate();
 		}
 public:
-		static Value Uninitialized(dim_t dims, ValueType id = ValueType::f32) {
+		static Value Uninitialized(dims_t dims, ValueType id = ValueType::f32) {
 			return Value(dims, id);
 		}
 
 		// Single value constructor
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
 		Value(const T& val, ValueType id = ValueTypeTraits<T>::id)
-			: Value(dim_t{1,1,1,1}, val, id)
+			: Value(dims_t{1,1,1,1}, val, id)
 		{}
 
 		// Single value dimensioned constructor
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
-		Value(dim_t dims, const T& val, ValueType id = ValueTypeTraits<T>::id)
+		Value(dims_t dims, const T& val, ValueType id = ValueTypeTraits<T>::id)
 			: mtype(id)
 			, mdims{ dims }
 		{
@@ -65,7 +66,7 @@ public:
 
 		// Dimensioned initializer list constructor
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
-		Value(dim_t dims, std::initializer_list<T> init, ValueType id = ValueTypeTraits<T>::id)
+		Value(dims_t dims, std::initializer_list<T> init, ValueType id = ValueTypeTraits<T>::id)
 			: mtype(id)
 			, mdims(dims)
 		{
@@ -76,7 +77,7 @@ public:
 		}
 
 		template<typename InputIt, typename = typename std::iterator_traits<InputIt>::iterator_category>
-		Value(dim_t dims, InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id)
+		Value(dims_t dims, InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id)
 			: mtype(id)
 			, mdims{dims}
 		{
@@ -91,7 +92,7 @@ public:
 		{
 			auto dist = std::distance(first, last);
 			assert(dist > 0);
-			assign(dim_t{static_cast<std::size_t>(dist), 1, 1, 1}, first, last, id);
+			assign(dims_t{static_cast<std::size_t>(dist), 1, 1, 1}, first, last, id);
 		}
 
 		template<typename T, std::enable_if_t<std::is_arithmetic_v<T>, int> = 0>
@@ -100,7 +101,7 @@ public:
 		}
 
 		template<typename T>
-		void assign(dim_t dims, const T& value, ValueType id = ValueTypeTraits<T>::id) {
+		void assign(dims_t dims, const T& value, ValueType id = ValueTypeTraits<T>::id) {
 			mdims = dims;
 			mtype = id;
 			allocate();
@@ -111,16 +112,16 @@ public:
 		template<typename InputIt, std::enable_if_t<std::is_same_v<typename std::iterator_traits<InputIt>::iterator_category, std::input_iterator_tag>, int> = 0>
 		void assign(InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id) {
 			std::vector<typename std::iterator_traits<InputIt>::value_type> tmp(first, last);
-			assign(dim_t{ tmp.size(), 1, 1, 1 }, tmp.begin(), tmp.end(), id);
+			assign(dims_t{ tmp.size(), 1, 1, 1 }, tmp.begin(), tmp.end(), id);
 		}
 		// Implementation for all iterators that are NOT input iterators
 		template<typename Iter, std::enable_if_t<!std::is_same_v<typename std::iterator_traits<Iter>::iterator_category, std::input_iterator_tag>, int> = 0>
 		void assign(Iter first, Iter last, ValueType id = ValueTypeTraits<typename std::iterator_traits<Iter>::value_type>::id) {
-			assign(dim_t{std::distance(first, last), 1, 1, 1}, first, last, id);
+			assign(dims_t{std::distance(first, last), 1, 1, 1}, first, last, id);
 		}
 		// Implementation available for all iterator types
 		template<typename InputIt, typename = typename std::iterator_traits<InputIt>::iterator_category>
-		void assign(dim_t dims, InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id) {
+		void assign(dims_t dims, InputIt first, InputIt last, ValueType id = ValueTypeTraits<typename std::iterator_traits<InputIt>::value_type>::id) {
 			mdims = dims;
 			mtype = id;
 			allocate();
@@ -128,10 +129,10 @@ public:
 		}
 		template<typename T>
 		void assign(std::initializer_list<T> ilist, ValueType id = ValueTypeTraits<T>::id) {
-			assign(dim_t{ilist.size(), 1, 1, 1}, ilist.begin(), ilist.end(), id);
+			assign(dims_t{ilist.size(), 1, 1, 1}, ilist.begin(), ilist.end(), id);
 		}
 		template<typename T>
-		void assign(dim_t dims, std::initializer_list<T> ilist, ValueType id = ValueTypeTraits<T>::id) {
+		void assign(dims_t dims, std::initializer_list<T> ilist, ValueType id = ValueTypeTraits<T>::id) {
 			assign(dims, ilist.begin(), ilist.end(), id);
 		}
 
@@ -140,6 +141,8 @@ public:
 		std::size_t bytes() const noexcept;
 
 		bool empty() const noexcept;
+
+		void clear();
 
 		Type type() const noexcept;
 
@@ -181,7 +184,7 @@ public:
 		// Return the number of bytes in each element of this tensor
 		std::size_t elementSize() const noexcept;
 		// Return all the dimensions as a array with 4 elements
-		dim_t dims() const noexcept;
+		dims_t dims() const noexcept;
 		// Return the dimension at index
 		std::size_t dim(std::size_t index) const noexcept;
 		// Return the width of the tensor, same as dim(0)
@@ -193,13 +196,13 @@ public:
 
 		// Attempt to change the dimensions of this tensor, without changing the order of the elements
 		// Throws an exception if the number of elements would be changed by changing the dims
-		void moddims(const dim_t & ndims);
+		void moddims(const dims_t & ndims);
 
 		char* data() noexcept;
 		const char* data() const noexcept;
 	private:
 		Type mtype;
-		dim_t mdims;
+		dims_t mdims;
 		//range_t mrange;
 		std::unique_ptr<char[]> mdata;
 

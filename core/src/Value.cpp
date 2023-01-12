@@ -26,7 +26,7 @@ namespace gdev {
 		, mtype(other.type())
 		, mdata(std::move(other.mdata))
 	{
-		other.mdims = dim_t{0, 1, 1, 1};
+		other.mdims = dims_t{0, 1, 1, 1};
 	}
 	Value& Value::operator=(const Value& other) {
 		Value::~Value();
@@ -51,6 +51,11 @@ namespace gdev {
 	}
 	bool Value::empty() const noexcept {
 		return bool(mdata);
+	}
+
+	void Value::clear() {
+		this->~Value();
+		new (this) Value();
 	}
 
 	ValueType Value::type() const noexcept {
@@ -182,7 +187,7 @@ namespace gdev {
 	}
 
 
-	dim_t Value::dims() const noexcept {
+	dims_t Value::dims() const noexcept {
 		return mdims;
 	}
 	std::size_t Value::dim(std::size_t index) const noexcept {
@@ -204,7 +209,7 @@ namespace gdev {
 		return std::max(1, count);
 	}
 
-	void Value::moddims(const dim_t & ndims) {
+	void Value::moddims(const dims_t & ndims) {
 		std::size_t count = 1;
 		for (int i = 0; i < ndims.size(); ++i) {
 			if (ndims[i] < 1) {

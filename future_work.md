@@ -4,17 +4,21 @@
 - [ ] Give the `Value` class a range for its values (Clamp or verify ranges?)
 - [x] Give `Value` class assignment capabilities
 - [x] Test the `Value` class assignment methods and constructors
+- [x] Simplify the message context
+- [x] Provide some tests for the message context
+- [ ] Allow the message context to connect to remote hosts as well? (`ZeroMQ` allows for this fairly easily)
 - [ ] Create static binding wrapper for the `Value` class
 - [ ] Create static binding wrapper for the `Space` class (More difficult, requires macros...)
 - [ ] Provide optional initialization parameter passing to the environment
-- [ ] Make dictionary in Godot for the `Space`
+- [x] Make dictionary in Godot for the `Space`
 - [ ] Make a `Value` wrapper in Godot
+  - [x] Provide constructors for making values in Godot?
   - [ ] Create reference class for subset of value (accepting dynamic iterator type to identify selection)
-  - [ ] Method for accessing elements via Array of indices
-  - [ ] Method for accessing elements via single index
-  - [ ] Method for accessing elements via multidimensional indices
+  - [ ] Method for accessing elements via Array of indices (if object is iterable)
+  - [x] Method for accessing elements via single index
+  - [x] Method for accessing elements via multidimensional indices
   - [ ] `slice` accessor
   - [ ] `row` accessor
   - [ ] `col` accessor
-  - [ ] Iteration capabilities for value and reference
+  - [x] Iteration capabilities for value
 - [ ] Change all the existing environment examples to work with the new setup
