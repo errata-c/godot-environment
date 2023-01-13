@@ -6,7 +6,7 @@
 
 #include <gdev/GodotConversions.hpp>
 #include <gdev/Serialize.hpp>
-#include <ez/deserialize.hpp>
+#include <ez/serialize/core.hpp>
 
 #include <SceneTree.hpp>
 #include <Array.hpp>

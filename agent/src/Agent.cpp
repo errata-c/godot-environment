@@ -3,7 +3,7 @@
 
 #include <gdev/RequestType.hpp>
 #include <gdev/Serialize.hpp>
-#include <ez/serialize.hpp>
+#include <ez/serialize/core.hpp>
 
 #include <cassert>
 #include <random>

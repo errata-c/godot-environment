@@ -12,7 +12,11 @@ func _ready():
 	print(wrapper)
 	
 	wrapper.fill(0.5)
+	print(wrapper)
+	
+	for i in range(10):
+		wrapper.set_flat(i, i * 0.5)
 	
 	print(wrapper)
 
-	get_tree().quit(0)
+	#get_tree().quit(0)

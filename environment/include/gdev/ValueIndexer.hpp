@@ -45,11 +45,11 @@ namespace godot {
 	private:
 		Ref<ValueWrapper> source;
 
-		size_t current, end;
+		size_t current = 0, end = 0;
 
 		gdev::Dims cdims;
 
-		bool flat;
+		bool flat = false;
 		std::array<Array, 4> indices;
 	};
 }

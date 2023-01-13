@@ -50,11 +50,9 @@ namespace godot {
 		String vtype() const;
 
 		String _to_string() const;
-	private:
-		friend class ValueIndexer;
 
 		// Iteration information
-		size_t current, end;
+		size_t current = 0, end = 0;
 
 		// Actual value
 		gdev::Value data;

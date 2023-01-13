@@ -2,6 +2,7 @@
 #include <string_view>
 #include <optional>
 
+#include <Dictionary.hpp>
 #include <Variant.hpp>
 
 #include <gdev/Value.hpp>
@@ -17,25 +18,22 @@ namespace gdev {
 	godot::String to_godot_string(godot::Variant::Type vtype);
 
 	// Convert the variant to a ValueType enum, the var should be a string.
-	std::optional<ValueType> convertToValueType(godot::Variant var);
+	std::optional<ValueType> to_value_type(godot::Variant var);
 	
 	// Convert the variant to a value range, used to describe the allowed values for an observation or action.
-	std::optional<range_t> convertToRange(godot::Variant var);
+	std::optional<range_t> to_range(godot::Variant var);
 
 	// Convert the variant to a set of dimensions for a tensor.
-	std::optional<dims_t> convertToDims(godot::Variant var);
-
-	// Convert the variant to a Value
-	std::optional<Value> convertToValue(godot::Variant var);
+	std::optional<dims_t> to_dims(godot::Variant var);
 
 	// From c++ to Godot
 
 	// Take the Value and convert it to a godot::Variant.
-	godot::Variant convertToVariant(const gdev::ValueType& val);
+	godot::Variant to_variant(const gdev::ValueType& val);
 
-	godot::Variant convertToVariant(const gdev::range_t& val);
+	godot::Variant to_variant(const gdev::range_t& val);
 
-	godot::Variant convertToVariant(const gdev::dims_t& val);
+	godot::Variant to_variant(const gdev::dims_t& val);
 
 	template<typename T>
 	std::optional<T> convert_to(const godot::Variant& var) {
@@ -61,4 +59,7 @@ namespace gdev {
 			return std::nullopt;
 		}
 	}
+
+	void serialize_space(const godot::Dictionary& value, std::string& buffer);
+	const char* deserialize_space(const char* buffer, const char* end, godot::Dictionary& value);
 }

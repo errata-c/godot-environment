@@ -2,29 +2,14 @@
 #include <gdev/Value.hpp>
 #include <gdev/Space.hpp>
 
-#include <ez/serialize.hpp>
-#include <ez/deserialize.hpp>
+#include <ez/serialize/core.hpp>
+#include <ez/serialize/strings.hpp>
 
 namespace gdev {
-	namespace b8_serialize {
-		void value(bool value, std::string& buffer) {
-			ez::serialize::u8((uint8_t)value, buffer);
-		}
-	}
-	namespace b8_deserialize {
-		const char* value(const char* buffer, const char* end, bool& value) {
-			uint8_t tmp;
-			buffer = ez::deserialize::u8(buffer, end, tmp);
-			value = static_cast<bool>(tmp);
-			return buffer;
-		}
-	}
-
 	struct _serialize_func {
 		template<typename T>
 		static void apply(const Value& _val, std::string& buffer) {
 			using ez::serialize::value;
-			using b8_serialize::value;
 
 			auto it = (const T*)_val.data();
 			auto last = it + _val.elements();
@@ -46,7 +31,6 @@ namespace gdev {
 	struct _deserialize_func {
 		template<typename T>
 		static const char* apply(Value& _val, const char* buffer, const char* buffer_end) {
-			using b8_deserialize::value;
 			using ez::deserialize::value;
 
 			auto it = (T*)_val.data();

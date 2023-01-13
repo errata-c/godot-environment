@@ -1,5 +1,8 @@
 #include <gdev/GodotConversions.hpp>
 
+#include <gdev/ValueWrapper.hpp>
+#include <gdev/Serialize.hpp>
+
 #include <Dictionary.hpp>
 #include <String.hpp>
 #include <Godot.hpp>
@@ -7,6 +10,10 @@
 #include <iostream>
 #include <unordered_map>
 #include <limits>
+
+#include <ez/serialize/core.hpp>
+#include <ez/serialize/ranges.hpp>
+#include <ez/serialize/strings.hpp>
 
 using VType = godot::Variant::Type;
 using Godot = godot::Godot;
@@ -82,7 +89,7 @@ namespace gdev {
 		return godot::String(to_string_view(vtype).data());
 	}
 
-	std::optional<ValueType> convertToValueType(godot::Variant var) {
+	std::optional<ValueType> to_value_type(godot::Variant var) {
 		// consider some mechanism for localization?
 
 		// Make sure its a string first
@@ -168,7 +175,7 @@ namespace gdev {
 		return std::nullopt;
 	}
 
-	std::optional<range_t> convertToRange(godot::Variant var) {
+	std::optional<range_t> to_range(godot::Variant var) {
 		range_t range;
 
 		switch (var.get_type()) {
@@ -222,7 +229,7 @@ namespace gdev {
 		return range;
 	}
 
-	std::optional<dims_t> convertToDims(godot::Variant var) {
+	std::optional<dims_t> to_dims(godot::Variant var) {
 		switch (var.get_type()) {
 		case VType::INT: {
 			int64_t d(var);
@@ -283,85 +290,17 @@ namespace gdev {
 	}
 
 
-	std::optional<Value> convertToValue(godot::Variant var) {
-		switch (var.get_type()) {
-		case VType::BOOL: {
-			return Value(bool(var));
-		}
-		case VType::INT: {
-			return Value(int(var));
-		}
-		case VType::REAL: {
-			return Value(double(var));
-		}
-		case VType::ARRAY: {
-			// Check the size of the array, then go element by element, checking the types of the subelements
-			// Make sure that the array is either multidimensional, or that all elements are the same ValueType
-			godot::Array arr = var;
-			std::size_t size = arr.size();
-			if (size == 0) {
-				// Empty array is not allowed
-				Godot::print("Array passed into convertToValue was empty!");
-				return std::nullopt;
-			}
-
-			gdev::Value result;
-
-			VType etype = arr[0].get_type();
-			switch (etype) {
-			case VType::BOOL:
-				result = gdev::Value(size, false);
-				break;
-			case VType::INT:
-				result = gdev::Value(size, 0);
-				break;
-			case VType::REAL:
-				result = gdev::Value(size, 0.0);
-				break;
-			default:
-				// Elements must be a valid type
-				Godot::print("Array passed into convertToValue did not have a valid element type!");
-				return std::nullopt;
-			}
-
-			for (std::size_t i = 0; i < size; ++i) {
-				if (arr[i].get_type() != etype) {
-					Godot::print("Array passed into convertToValue did not have elements all of the same type!");
-					return std::nullopt;
-				}
-				switch (etype) {
-				case VType::BOOL:
-					result[i] = bool(arr[i]);
-					break;
-				case VType::INT:
-					result[i] = int(arr[i]);
-					break;
-				case VType::REAL:
-					result[i] = double(arr[i]);
-					break;
-				}
-			}
-
-			return result;
-		}
-		default:
-			Godot::print("Variant passed into convertToValue was not a supported type!");
-			return std::nullopt;
-		}
-	}
-
-
-	godot::Variant convertToVariant(const gdev::ValueType& val) {
+	godot::Variant to_variant(const gdev::ValueType& val) {
 		return godot::String(gdev::to_string_view(val).data());
 	}
-	godot::Variant convertToVariant(const gdev::range_t& val) {
+	godot::Variant to_variant(const gdev::range_t& val) {
 		// Default to a dictionary
 		godot::Dictionary dict;
 		dict["low"] = val[0];
 		dict["high"] = val[1];
 		return dict;
 	}
-	godot::Variant convertToVariant(const gdev::dims_t& val) {
+	godot::Variant to_variant(const gdev::dims_t& val) {
 		godot::Array arr;
 		arr.resize(4);
 		arr[0] = val[0];
@@ -369,5 +308,76 @@ namespace gdev {
 		arr[2] = val[2];
 		arr[3] = val[3];
 		return arr;
+	}
+	
+	void serialize_space(const godot::Dictionary& space, std::string& buffer) {
+		using namespace godot;
+
+		Array& keys = space.keys();
+		Array& values = space.values();
+
+		size_t count = static_cast<size_t>(keys.size());
+
+		// Verify that everything is correct first.
+		for (size_t i = 0; i < count; ++i) {
+			Variant& k = keys[i];
+			Variant& v = values[i];
+
+			if (v.get_type() != Variant::OBJECT) {
+				ERR_PRINT("Expected the space dictionary to contain ONLY ValueWrapper elements");
+				return;
+			}
+			Object * obj(v);
+			if (typeid(*obj).hash_code() != ValueWrapper::___get_id()) {
+				ERR_PRINT("Expected the space dictionary to contain ONLY ValueWrapper elements");
+				return;
+			}
+			ValueWrapper * wrapped = static_cast<ValueWrapper*>(obj);
+
+			if (k.get_type() != Variant::STRING) {
+				ERR_PRINT("A space can only have string keys for now");
+				return;
+			}
+		}
+
+		ez::serialize::u64(count, buffer);
+
+		for (size_t i = 0; i < count; ++i) {
+			Variant& k = keys[i];
+			Variant& v = values[i];
+
+			String key = k.operator String();
+			ValueWrapper* wrapped = static_cast<ValueWrapper*>((Object*)(v));
+
+			CharString utf8 = key.utf8();
+
+			ez::serialize::u64(uint64_t(utf8.length()), buffer);
+			ez::serialize::range(utf8.get_data(), utf8.get_data() + utf8.length(), buffer);
+
+			serialize(wrapped->data, buffer);
+		}
+	}
+	const char* deserialize_space(const char* buffer, const char* end, godot::Dictionary& space) {
+		// Deserialize in the same manner as the c++ function
+
+		uint64_t count;
+		buffer = ez::deserialize::u64(buffer, end, count);
+
+		std::string key;
+		
+
+		for (uint64_t i = 0; i < count; ++i) {
+			Value value;
+
+			buffer = ez::deserialize::string(buffer, end, key);
+			buffer = deserialize(buffer, end, value);
+
+			auto wrapped = godot::ValueWrapper::_new();
+			wrapped->data = std::move(value);
+
+			space[key.c_str()] = wrapped;
+		}
+
+		return buffer;
 	}
 }

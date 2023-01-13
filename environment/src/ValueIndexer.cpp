@@ -68,6 +68,6 @@ namespace godot {
 		return cdims.elements();
 	}
 	Array ValueIndexer::dims() const {
-		return gdev::convertToVariant(cdims);
+		return gdev::to_variant(cdims);
 	}
 }

@@ -45,13 +45,13 @@ namespace godot {
 		end = elements();
 	}
 	void ValueWrapper::reset_uninitialized(Variant _dims, String _vtype) {
-		auto cdims = gdev::convertToDims(_dims);
+		auto cdims = gdev::to_dims(_dims);
 		if (!cdims) {
 			Godot::print_error("Failed to convert dimensions argument!", "reset_uninitialized", __FILE__, __LINE__);
 			return;
 		}
 
-		auto parsed = gdev::convertToValueType(_vtype);
+		auto parsed = gdev::to_value_type(_vtype);
 		if (!parsed) {
 			Godot::print_error(
 				String("'{}' is not an accepted value type!").format(Array::make(_vtype)),
@@ -136,13 +136,13 @@ namespace godot {
 
 	void ValueWrapper::reset(Variant _dims, String _vtype, Variant val) {
 		// Check that the initializer object is valid
-		auto cdims = gdev::convertToDims(_dims);
+		auto cdims = gdev::to_dims(_dims);
 		if (!cdims) {
 			ERR_PRINT("Failed to convert dimensions argument!");
 			return;
 		}
 
-		auto parsed = gdev::convertToValueType(_vtype);
+		auto parsed = gdev::to_value_type(_vtype);
 		if (!parsed) {
 			ERR_PRINT(
 				String("'{}' is not an accepted value type!").format(Array::make(_vtype))
