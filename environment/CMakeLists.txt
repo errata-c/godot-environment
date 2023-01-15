@@ -4,12 +4,13 @@
 add_library(gdev-environment SHARED
 	"src/EnvironmentNode.cpp"
 	#"src/EnvironmentNodePrint.cpp"
-	#"src/EnvironmentNodeDefine.cpp"
+	"src/EnvironmentNodeDefine.cpp"
 	"src/gdnlibrary.cpp"
 	"src/GodotConversions.cpp"
 
 	"src/ValueWrapper.cpp"
 	"src/ValueIndexer.cpp"
+	"src/TestAgent.cpp"
 )
 target_link_libraries(gdev-environment PRIVATE
 	godot::cpp
@@ -27,7 +28,7 @@ install_gdnlib(
 	NAME "gdev"
 	TARGET "gdev-environment"
 	DESTINATION "bin"
-	CLASSES "EnvironmentNode" "ValueWrapper" "ValueIndexer"
+	CLASSES "EnvironmentNode" "ValueWrapper" "ValueIndexer" "TestAgent"
 	COMPONENT GDNLIB
 	DEPENDENCIES libzmq
 	EXCLUDE_FROM_ALL

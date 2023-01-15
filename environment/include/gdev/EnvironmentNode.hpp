@@ -30,6 +30,13 @@ namespace godot {
 		// Register the scene containing the environment
 		void register_scene(godot::Node * scene);
 
+		void set_connect_timeout(int ms);
+		void set_send_timeout(int ms);
+		void set_recv_timeout(int ms);
+		bool connect_agent(int port);
+
+		void setup();
+
 		// Get the value of the done flag, used to signal that the environment has hit some kind of end condition.
 		bool get_done() const noexcept;
 		// Set the value of the done flag, used to signal that the environment has hit some kind of end condition.
@@ -45,13 +52,15 @@ namespace godot {
 
 		// Called once the node has been created, and its children have been initialized.
 		void _ready();
-
-		// Called at a (supposedly) fixed rate
-		void _physics_process(float delta);
+		
+		void _physics_process(double delta);
+		void _process(double delta);
+		void run_step(double delta);
 
 		// Attempt to quit the application instance
 		void quit(int code);
-	private:
+
+
 		gdev::MessageContext mcontext;
 		std::string mbuffer;
 
@@ -61,7 +70,7 @@ namespace godot {
 		// Will make godot interfacing easier.
 		godot::Dictionary maction_space, mobservation_space;
 
-		bool mdone;
+		bool mdone, muse_physics_process, mhuman_control;
 		double mreward;
 	};
 }

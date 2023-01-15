@@ -36,31 +36,31 @@ namespace gdev {
 			// We should have a more robust method for finding a valid port number, that checks to see if there is
 			// a conflict somewhere.
 			std::random_device rd;
-			std::uniform_int_distribution<> dist(portMin(), portMax());
+			std::uniform_int_distribution<> dist(port_min(), port_max());
 			std::mt19937 gen(rd());
 
 			port = dist(gen);
 		}
 
-		std::vector<std::string> args;
-		addSceneArgument(sceneFile, args);
-		addPortArgument(port, args);
-		addConnectTimeoutArgument(mcontext.getConnectTimeout(), args);
-		addSendTimeoutArgument(mcontext.getSendTimeout(), args);
-		addRecvTimeoutArgument(mcontext.getRecvTimeout(), args);
+		ExecArgs args;
+		args.scene_file = sceneFile;
+		args.port = port;
+		args.connect_timeout = mcontext.getConnectTimeout();
+		args.recv_timeout = mcontext.getRecvTimeout();
+		args.send_timeout = mcontext.getSendTimeout();
 
 		// Attempt to run the exectuable
-		bool result = exec(godot, projectDir, args);
-		if (!result) {
+		if (!exec(godot, projectDir, args)) {
 			return false;
 		}
 
 		// The initialize the message context
-		result = mcontext.connect(port);
-		if (!result) {
+		if (!mcontext.connect(port)) {
 			return false;
 		}
 		mobservation.clear();
+
+		minit = true;
 
 		return true;
 	}
@@ -88,10 +88,8 @@ namespace gdev {
 		mbuffer.clear();
 		ez::serialize::enumerator(RequestType::Reset, mbuffer);
 
-		{
-			int8_t has_dict = false;
-			ez::serialize::i8(has_dict, mbuffer);
-		}
+		// No initialization dictionary
+		ez::serialize::value(false, mbuffer);
 
 		if (!mcontext.send(mbuffer)) {
 			throw std::logic_error("Failed to send reset command in gdev::Agent::reset!");
@@ -103,8 +101,8 @@ namespace gdev {
 		}
 
 		bool done = false;
-		float reward = 0.f;
-		deserializeStep(mbuffer.data(), mbuffer.data() + mbuffer.size(), mobservation, reward, done);
+		double reward = 0.0;
+		deserialize_step(mbuffer.data(), mbuffer.data() + mbuffer.size(), mobservation, reward, done);
 		return Step{ mobservation, reward, done};
 	}
 
@@ -129,8 +127,8 @@ namespace gdev {
 		}
 
 		bool done = false;
-		float reward = 0.f;
-		deserializeStep(mbuffer.data(), mbuffer.data() + mbuffer.size(), mobservation, reward, done);
+		double reward = 0.0;
+		deserialize_step(mbuffer.data(), mbuffer.data() + mbuffer.size(), mobservation, reward, done);
 		return Step{ mobservation, reward, done };
 	}
 
@@ -149,8 +147,8 @@ namespace gdev {
 		}
 
 		bool done = false;
-		float reward = 0.f;
-		deserializeStep(mbuffer.data(), mbuffer.data() + mbuffer.size(), mobservation, reward, done);
+		double reward = 0.0;
+		deserialize_step(mbuffer.data(), mbuffer.data() + mbuffer.size(), mobservation, reward, done);
 		return Step{ mobservation, reward, done };
 	}
 }

@@ -2,31 +2,32 @@
 #include <filesystem>
 #include <string>
 #include <vector>
+#include <optional>
 
 namespace gdev {
-	static constexpr int portMin() noexcept {
+	static constexpr int port_min() noexcept {
 		return 1024;
 	}
-	static constexpr int portMax() noexcept {
+	static constexpr int port_max() noexcept {
 		return 65535;
 	}
 
-	void addPortArgument(int port, std::vector<std::string>& args);
-	void addSceneArgument(const std::filesystem::path& scene, std::vector<std::string>& args);
-	void addFixedFPSArgument(int fps, std::vector<std::string>& args);
-	void addHeadlessArgument(std::vector<std::string>& args);
-	void addEnvSeedArgument(int seed, std::vector<std::string>& args);
-	void addSendTimeoutArgument(int ms, std::vector<std::string>& args);
-	void addRecvTimeoutArgument(int ms, std::vector<std::string>& args);
-	void addConnectTimeoutArgument(int ms, std::vector<std::string>& args);
-
-	// Extra args are passed like --key=value to the actual executable.
+	struct ExecArgs {
+		bool headless = false;
+		int port = port_min();
+		int send_timeout = 250;
+		int recv_timeout = 250;
+		int connect_timeout = 5000;
+		std::optional<int> seed;
+		std::optional<int> fixed_fps;
+		std::optional<std::filesystem::path> project_path, scene_file, pack_file;
+	};
 
 	// system specific function to run the godot executable.
 	// You must pass the path to the godot executable, the directory of the project, and the port to use for com.
 	// The exact implementation for this function depends on the operating system this project will be compiled for.
 	bool exec(
 		const std::filesystem::path& godot,
-		const std::filesystem::path& workingDir,
-		const std::vector<std::string> & args);
+		const std::filesystem::path& working_dir,
+		const ExecArgs & args);
 }

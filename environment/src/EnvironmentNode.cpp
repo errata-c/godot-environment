@@ -25,6 +25,8 @@ namespace godot {
 	EnvironmentNode::EnvironmentNode()
 		: mcontext(gdev::Com::Environment)
 		, mdone(false)
+		, muse_physics_process(false)
+		, mhuman_control(false)
 		, mreward(0.0)
 		, mscene(nullptr)
 	{}
@@ -32,6 +34,8 @@ namespace godot {
 	{}
 
 	void EnvironmentNode::_register_methods() {
+		register_property<EnvironmentNode, bool>("use_physics_process", &EnvironmentNode::muse_physics_process, false);
+		register_property<EnvironmentNode, bool>("human_control", &EnvironmentNode::mhuman_control, false);
 		register_property<EnvironmentNode, godot::Dictionary>("action_space", &EnvironmentNode::maction_space, godot::Dictionary{});
 		register_property<EnvironmentNode, godot::Dictionary>("observation_space", &EnvironmentNode::mobservation_space, godot::Dictionary{});
 		register_property<EnvironmentNode, double>("reward", &EnvironmentNode::set_reward, &EnvironmentNode::get_reward, 0.0);
@@ -41,13 +45,20 @@ namespace godot {
 		register_method("_ready", &EnvironmentNode::_ready);
 
 		// The main process:
+		register_method("_process", &EnvironmentNode::_process);
 		register_method("_physics_process", &EnvironmentNode::_physics_process);
 
 		// For defining the action and observation spaces
-		//register_method("define_action_space", &EnvironmentNode::define_action_space);
-		//register_method("define_observation_space", &EnvironmentNode::define_observation_space);
+		register_method("define_action_space", &EnvironmentNode::define_action_space);
+		register_method("define_observation_space", &EnvironmentNode::define_observation_space);
 
 		register_method("register_scene", &EnvironmentNode::register_scene);
+		register_method("set_connect_timeout", &EnvironmentNode::set_connect_timeout);
+		register_method("set_send_timeout", &EnvironmentNode::set_send_timeout);
+		register_method("set_recv_timeout", &EnvironmentNode::set_recv_timeout);
+		register_method("connect_agent", &EnvironmentNode::connect_agent);
+
+		register_method("setup", &EnvironmentNode::setup);
 	}
 
 	void EnvironmentNode::set_reward(double val) {
@@ -64,6 +75,26 @@ namespace godot {
 		mdone = val;
 	}
 	
+	void EnvironmentNode::set_connect_timeout(int ms) {
+		mcontext.setConnectTimeout(ms);
+	}
+	void EnvironmentNode::set_send_timeout(int ms) {
+		mcontext.setSendTimeout(ms);
+	}
+	void EnvironmentNode::set_recv_timeout(int ms) {
+		mcontext.setRecvTimeout(ms);
+	}
+	bool EnvironmentNode::connect_agent(int port) {
+		if (!mcontext.connect(port)) {
+			ERR_PRINT("Failed to connect to the agent!");
+			return false;
+		}
+		else {
+			Godot::print("Connection initialized");
+			return true;
+		}
+	}
+
 	void EnvironmentNode::register_scene(godot::Node * node) {
 		if (node == nullptr) {
 			Godot::print_error("Attempt to register a scene with a null Node!",
@@ -87,41 +118,6 @@ namespace godot {
 			quit(-1);
 			return;
 		}
-		
-		// Try to get a simple ping to determine if the setup is correct.
-		mbuffer.clear();
-		if (mcontext.recv(mbuffer)) {
-			gdev::RequestType req = gdev::RequestType::None;
-			
-			const char* data = mbuffer.data();
-			const char* end = mbuffer.data() + mbuffer.size();
-
-			data = ez::deserialize::enumerator(data, end, req);
-			if (req != gdev::RequestType::None) {
-				Godot::print_error("First request received from Agent was not None! (This is a bug!)",
-					"EnvironmentNode::register_scene", __FILE__, __LINE__);
-				quit(-1);
-				return;
-			}
-		}
-		else {
-			Godot::print_error("Failed to get the first message from the Agent!",
-				"EnvironmentNode::register_scene", __FILE__, __LINE__);
-
-			quit(-1);
-			return;
-		}
-
-		mbuffer.clear();
-		if (!mcontext.send(mbuffer)) {
-			Godot::print_error("Failed to send the initialization response!", 
-				"EnvironmentNode::register_scene", __FILE__, __LINE__);
-
-			quit(-1);
-			return;
-		}
-
-		add_child(node);
 
 		mscene = node;
 		mdone = false;
@@ -130,11 +126,11 @@ namespace godot {
 
 	void EnvironmentNode::_init() {
 		// Keep this node running even when paused?
-		set_pause_mode(PAUSE_MODE_PROCESS);
+		//set_pause_mode(PAUSE_MODE_PROCESS);
 	}
 
-	// Node added to scene tree
-	void EnvironmentNode::_ready() {
+	void EnvironmentNode::setup() {
+
 		// Check for command line args
 		godot::PoolStringArray args = godot::OS::get_singleton()->get_cmdline_args();
 
@@ -169,7 +165,7 @@ namespace godot {
 				}
 			}
 		}
-		
+
 		if (foundPort) {
 			Godot::print(godot::String("Attempting to connect on port {0}").format(godot::Array::make(port)));
 		}
@@ -178,29 +174,41 @@ namespace godot {
 		}
 
 		// Attempt to connect
-		if (!mcontext.connect(port)) {
-			Godot::print_error("Failed to connect to the Agent!",
-				"EnvironmentNode::_ready", __FILE__, __LINE__);
+		if (!connect_agent(port)) {
 			quit(-1);
 			return;
 		}
-		else {
-			Godot::print("Connection initialized");
-		}
+	}
+
+	// Node added to scene tree
+	void EnvironmentNode::_ready() {
+		
 	}
 
 	void EnvironmentNode::quit(int code) {
 		SceneTree* tree = get_tree();
 		tree->quit(code);
 	}
+
+	void EnvironmentNode::_process(double delta) {
+		if (!mhuman_control && !muse_physics_process) {
+			run_step(delta);
+		}
+	}
 	
-	void EnvironmentNode::_physics_process(float delta) {
+	void EnvironmentNode::_physics_process(double delta) {
+		if (!mhuman_control && muse_physics_process) {
+			run_step(delta);
+		}
+	}
+
+	void EnvironmentNode::run_step(double delta) {
 		gdev::RequestType req = gdev::RequestType::None;
 
 		mbuffer.clear();
 		if (mcontext.recv(mbuffer)) {
 			if (mbuffer.empty()) {
-				Godot::print_error("Failed to recv a message from the agent!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
+				ERR_PRINT("Received an empty message from the agent!");
 				quit(-1);
 				return;
 			}
@@ -222,13 +230,13 @@ namespace godot {
 				break;
 			}
 			case gdev::RequestType::Reset: {
-				
-				int8_t has_dict = false;
-				data = ez::deserialize::i8(data, end, has_dict);
+
+				bool has_dict = false;
+				data = ez::deserialize::value(data, end, has_dict);
 				if (has_dict) {
 					godot::Dictionary dict{};
 					// Fill the dictionary
-
+					gdev::deserialize_space(data, end, dict);
 
 					mscene->call("reset", godot::Array::make(this, dict));
 				}
@@ -236,10 +244,8 @@ namespace godot {
 					mscene->call("reset", godot::Array::make(this, godot::Dictionary{}));
 				}
 
-				
-
 				mbuffer.clear();
-				//gdev::serializeStep(minstance.observation, minstance.reward, minstance.done, mbuffer);
+				gdev::serialize_step(mobservation_space, mreward, mdone, mbuffer);
 				if (!mcontext.send(mbuffer)) {
 					Godot::print_error("Failed to send the step data!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
 					quit(-1);
@@ -249,75 +255,30 @@ namespace godot {
 			}
 			case gdev::RequestType::Step: {
 				// Step contains the action data
-				int32_t index;
-				data = ez::deserialize::i32(data, end, index);
 
-				// Deserialize the action data!
-				//data = gdev::deserialize(data, end, minstance.action);
-				//minstance.node->call("step", godot::Array::make(this));
+				// Deserialize the action data
+				data = gdev::deserialize_space(data, end, maction_space);
+				mscene->call("step", godot::Array::make(this));
+
 
 				mbuffer.clear();
-				//gdev::serializeStep(minstance.observation, minstance.reward, minstance.done, mbuffer);
+				// Prepare the step data
+				gdev::serialize_step(mobservation_space, mreward, mdone, mbuffer);
+
+				// Send the step data
 				if (!mcontext.send(mbuffer)) {
 					Godot::print_error("Failed to send the step data!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
 					quit(-1);
 					return;
 				}
 				break;
-			}}
+			}
+			}
 		}
 		else {
 			Godot::print_error("Failed to recv a message from the agent!", "EnvironmentNode::_physics_process", __FILE__, __LINE__);
 			quit(-1);
 			return;
 		}
-		
 	}
-
-	/*
-	godot::Variant EnvironmentNode::get_action(godot::String name) {
-		godot::CharString cname = name.ascii();
-
-		gdev::Space & action = minstance.action;
-		
-		auto it = action.find(std::string_view(cname.get_data(), cname.length()));
-		if (it == action.end()) {
-			godot::String msg{"Failed to find an action value under the name '{0}'!"};
-			Godot::print_error(msg.format(godot::Array::make(name)),
-				"EnvironmentNode::get_action",
-				__FILE__,
-				__LINE__);
-			return godot::Variant();
-		}
-
-		return gdev::convertToVariant(it->value);
-	}
-	void EnvironmentNode::set_observation(godot::String name, godot::Variant value) {
-		godot::CharString cname = name.ascii();
-
-		gdev::Space & observation = minstance.observation;
-
-		auto it = observation.find(std::string_view(cname.get_data(), cname.length()));
-		if (it == observation.end()) {
-			godot::String msg{ "Failed to find an observation value under the name '{0}'!" };
-			Godot::print_error(msg.format(godot::Array::make(name)), 
-			"EnvironmentNode::set_observation",
-			__FILE__,
-			__LINE__);
-			return;
-		}
-
-		// Make sure the types are compatible.
-		std::optional<gdev::Value> result = gdev::convertToValue(value);
-		if (!result) {
-			Godot::print_error("Failed to convert the Variant passed into a valid observation value!",
-				"EnvironmentNode::set_observation",
-				__FILE__,
-				__LINE__);
-		}
-		else {
-			it->value = std::move(result.value());
-		}
-	}
-	*/
 }

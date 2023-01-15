@@ -3,9 +3,10 @@
 #include <Godot.hpp>
 #include <GodotGlobal.hpp>
 #include <gdev/GodotConversions.hpp>
+#include <gdev/ValueWrapper.hpp>
 
 namespace godot {
-	bool fillSpaceDef(godot::Dictionary dict, godot::String funcName, gdev::SpaceDef& space) {
+	bool fillSpaceDef(godot::Dictionary dict, godot::String funcName, godot::Dictionary& space) {
 		using VType = godot::Variant::Type;
 
 		// Iterate all the key value pairs in the dictionary
@@ -14,9 +15,9 @@ namespace godot {
 		godot::Array values = dict.values();
 		assert(keys.size() == values.size());
 
-		for (std::size_t i = 0; i < values.size(); ++i) {
+		for (std::size_t i = 0, c = values.size(); i < c; ++i) {
 			if (keys[i].get_type() != VType::STRING) {
-				Godot::print_error("Non-string key values are not supported for action or observation space!",
+				Godot::print_error("Non-string key values are not supported for spaces!",
 					funcName, __FILE__, __LINE__);
 
 				space.clear();
@@ -31,49 +32,73 @@ namespace godot {
 			godot::String key = keys[i];
 			godot::Dictionary value = values[i];
 
-			std::optional<gdev::ValueDef> vdef = gdev::convertToValueDef(value);
-			if (!vdef) {
-				Godot::print_error("Failed to convert a dictionary value into a ValueDef!",
-					funcName, __FILE__, __LINE__);
+			gdev::ValueType vtype;
+			gdev::range_t range;
+			gdev::Dims dims{ 1,1,1,1 };
 
-				space.clear();
+			if (!value.has("type")) {
+				ERR_PRINT(
+					String("Space element '{0}' does not have a type defined!").format(Array::make(key))
+				);
 				return false;
 			}
+			else {
+				auto opt = gdev::to_value_type(value["type"]);
+				if (!opt) {
+					return false;
+				}
+				vtype = *opt;
+			}
 
-			godot::CharString name = key.ascii();
-			std::string_view nameView(name.get_data(), name.length());
+			if (!value.has("range")) {
+				ERR_PRINT(
+					String("Space element '{0}' does not have a range defined!").format(Array::make(key))
+				);
+				return false;
+			}
+			else {
+				auto opt = gdev::to_range(value["range"]);
+				if (!opt) {
+					return false;
+				}
+				range = *opt;
+			}
 
-			auto res = space.insert(nameView, std::move(vdef.value()));
-			assert(res.has_value());
+			if (value.has("dims")) {
+				auto opt = gdev::to_dims(value["dims"]);
+				if (!opt) {
+					ERR_PRINT(
+						String("Failed to process '{0}' dims, invalid formatting!").format(Array::make(key))
+					);
+					return false;
+				}
+				dims = *opt;
+			}
+
+			ValueWrapper * wrapped = ValueWrapper::_new();
+			// Range?
+			wrapped->data = gdev::Value::Uninitialized(dims, vtype);
+
+			space[key] = wrapped;
 		}
 
 		return true;
 	}
 
 	void EnvironmentNode::define_action_space(godot::Dictionary dict) {
-		if (maction_space_def.empty()) {
-			if (fillSpaceDef(dict, "EnvironmentNode::define_action_space", maction_space_def)) {
-				Godot::print("Successfully defined the action space!");
-			}
-			else {
-				Godot::print("Failed to define the action space!");
-			}
+		if (fillSpaceDef(dict, "EnvironmentNode::define_action_space", maction_space)) {
+			Godot::print("Successfully defined the action space!");
 		}
 		else {
-			Godot::print_error("Action space definition has already been initialized!", "EnvironmentNode::define_action_space", __FILE__, __LINE__);
+			Godot::print("Failed to define the action space!");
 		}
 	}
 	void EnvironmentNode::define_observation_space(godot::Dictionary dict) {
-		if (mobservation_space_def.empty()) {
-			if (fillSpaceDef(dict, "EnvironmentNode::define_observation_space", mobservation_space_def)) {
-				Godot::print("Successfully defined the observation space!");
-			}
-			else {
-				Godot::print("Failed to define the observation space!");
-			}
+		if (fillSpaceDef(dict, "EnvironmentNode::define_observation_space", mobservation_space)) {
+			Godot::print("Successfully defined the observation space!");
 		}
 		else {
-			Godot::print_error("Observation space definition has already been initialized!", "EnvironmentNode::define_observation_space", __FILE__, __LINE__);
+			Godot::print("Failed to define the observation space!");
 		}
 	}
 }

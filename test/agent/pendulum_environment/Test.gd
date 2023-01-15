@@ -1,22 +1,57 @@
-extends Node
+extends Node2D
 
-var builtin_type_names = ["nil", "bool", "int", "real", "string", "vector2", "rect2", "vector3", "maxtrix32", "plane", "quat", "aabb",  "matrix3", "transform", "color", "image", "nodepath", "rid", null, "inputevent", "dictionary", "array", "rawarray", "intarray", "realarray", "stringarray", "vector2array", "vector3array", "colorarray", "unknown"]
+var thread: Thread
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var cls = load("res://bin/value_wrapper.gdns")
-	var wrapper = cls.new()
+	$Pendulum.define_spaces($Env)
+	$Env.register_scene($Pendulum)
+	$Env.set_process(false)
 	
-	wrapper.reset([5, 2], "f32", range(10))
-	
-	print(wrapper)
-	
-	wrapper.fill(0.5)
-	print(wrapper)
-	
-	for i in range(10):
-		wrapper.set_flat(i, i * 0.5)
-	
-	print(wrapper)
+	pause_mode = Node.PAUSE_MODE_PROCESS
+	get_tree().paused = true
 
-	#get_tree().quit(0)
+func _input(event):
+	if !get_tree().paused:
+		return
+	
+	if event is InputEventKey:
+		get_tree().paused = false	
+		setup()
+
+func setup():
+	$Env.set_process(true)
+	
+	$Env.set_recv_timeout(10*60*1000)
+	$Env.set_send_timeout(10*60*000)
+	$Env.set_connect_timeout(10*60*1000)
+	$Env.connect_agent(2048)
+	
+	thread = Thread.new()
+	thread.start(self, "_thread_func")
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _thread_func(udata):
+	var agent = load("res://bin/test_agent.gdns").new()
+	var value_wrapper = load("res://bin/value_wrapper.gdns")
+	
+	agent.connect_environment(2048)
+	
+	var step = agent.reset()
+	if step.empty():
+		return
+		
+	var action_space = {
+		"force": value_wrapper.new()
+	}
+	action_space.force.reset(1, "f64", 1.0)
+	
+	var start = Time.get_ticks_msec()
+	while (Time.get_ticks_msec() - start) < 30000:
+		step = agent.step(action_space)
+		if step.empty():
+			return
+
+func _exit_tree():
+	if thread != null:
+		thread.wait_to_finish()

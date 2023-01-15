@@ -1,9 +1,12 @@
 #include <gdev/exec.hpp>
+#include "args.hpp"
 
 #include <windows.h>
 #include <string>
 #include <array>
 #include <stdexcept>
+
+#include <iostream>
 
 namespace gdev {
 	/*
@@ -36,9 +39,13 @@ namespace gdev {
 	}
 	*/
 
-	bool exec(const std::filesystem::path& godotExe, const std::filesystem::path& workingDir, const std::vector<std::string> & args) {
+	bool exec(const std::filesystem::path& godotExe, const std::filesystem::path& workingDir, const ExecArgs & _args) {
 		namespace fs = std::filesystem;
 
+		std::vector<std::string> args = gdev::buildArgs(_args);
+
+		// Win32 api stuff, unfortunately.
+		
 		STARTUPINFO si;
 		PROCESS_INFORMATION pi;
 
@@ -49,7 +56,8 @@ namespace gdev {
 		std::string command = godotExe.string();
 		std::string working = workingDir.string();
 		{
-			std::size_t count = 0;
+			// A few extra characters just in case
+			std::size_t count = 8;
 			for (const std::string & arg : args) {
 				count += arg.size();
 			}
@@ -60,6 +68,9 @@ namespace gdev {
 			command.append(1, ' ');
 			command.append(arg);
 		}
+
+		//std::cout << "command:\n";
+		//std::cout << command << std::endl;
 
 		BOOL result = CreateProcessA(
 			NULL,

@@ -10,6 +10,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <limits>
+#include <typeinfo>
 
 #include <ez/serialize/core.hpp>
 #include <ez/serialize/ranges.hpp>
@@ -323,19 +324,16 @@ namespace gdev {
 			Variant& k = keys[i];
 			Variant& v = values[i];
 
-			if (v.get_type() != Variant::OBJECT) {
-				ERR_PRINT("Expected the space dictionary to contain ONLY ValueWrapper elements");
-				return;
-			}
-			Object * obj(v);
-			if (typeid(*obj).hash_code() != ValueWrapper::___get_id()) {
-				ERR_PRINT("Expected the space dictionary to contain ONLY ValueWrapper elements");
-				return;
-			}
-			ValueWrapper * wrapped = static_cast<ValueWrapper*>(obj);
+			Variant::Type kt = k.get_type(), vt = v.get_type();
+
 
 			if (k.get_type() != Variant::STRING) {
 				ERR_PRINT("A space can only have string keys for now");
+				return;
+			}
+
+			if (v.get_type() != Variant::OBJECT) {
+				ERR_PRINT("Expected the space dictionary to contain ONLY ValueWrapper elements");
 				return;
 			}
 		}
@@ -347,7 +345,7 @@ namespace gdev {
 			Variant& v = values[i];
 
 			String key = k.operator String();
-			ValueWrapper* wrapped = static_cast<ValueWrapper*>((Object*)(v));
+			ValueWrapper* wrapped = v;
 
 			CharString utf8 = key.utf8();
 
@@ -357,10 +355,10 @@ namespace gdev {
 			serialize(wrapped->data, buffer);
 		}
 	}
-	const char* deserialize_space(const char* buffer, const char* end, godot::Dictionary& space) {
+	const char* deserialize_space(const char* buffer, const char*const end, godot::Dictionary& space) {
 		// Deserialize in the same manner as the c++ function
 
-		uint64_t count;
+		uint64_t count = 0;
 		buffer = ez::deserialize::u64(buffer, end, count);
 
 		std::string key;
@@ -379,5 +377,16 @@ namespace gdev {
 		}
 
 		return buffer;
+	}
+
+	void serialize_step(const godot::Dictionary& observation, double reward, bool done, std::string& buffer) {
+		ez::serialize::value(done, buffer);
+		ez::serialize::f64(reward, buffer);
+		serialize_space(observation, buffer);
+	}
+	const char* deserialize_step(const char* buffer, const char*const end, godot::Dictionary& observation, double& reward, bool& done) {
+		buffer = ez::deserialize::value(buffer, end, done);
+		buffer = ez::deserialize::f64(buffer, end, reward);
+		return deserialize_space(buffer, end, observation);
 	}
 }

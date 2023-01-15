@@ -2,6 +2,7 @@
 #include <gdev/EnvironmentNode.hpp>
 #include <gdev/ValueWrapper.hpp>
 #include <gdev/ValueIndexer.hpp>
+#include <gdev/TestAgent.hpp>
 
 extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options * o) {
     godot::Godot::gdnative_init(o);
@@ -17,4 +18,6 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void* handle) {
 	godot::register_class<godot::ValueWrapper>();
 	godot::register_class<godot::ValueIndexer>();
     godot::register_class<godot::EnvironmentNode>();
+
+	godot::register_class<godot::TestAgent>();
 }

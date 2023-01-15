@@ -109,7 +109,7 @@ namespace gdev {
 
 	int MessageContext::getSendTimeout() const {
 		int ms = 0;
-		size_t len = 0;
+		size_t len = sizeof(int);
 		int error = zmq_getsockopt(socket, ZMQ_SNDTIMEO, &ms, &len);
 		assert(error == 0);
 
@@ -117,7 +117,7 @@ namespace gdev {
 	}
 	int MessageContext::getRecvTimeout() const {
 		int ms = 0;
-		size_t len = 0;
+		size_t len = sizeof(int);
 		int error = zmq_getsockopt(socket, ZMQ_RCVTIMEO, &ms, &len);
 		assert(error == 0);
 
@@ -125,7 +125,7 @@ namespace gdev {
 	}
 	int MessageContext::getConnectTimeout() const {
 		int ms = 0;
-		size_t len = 0;
+		size_t len = sizeof(int);
 		int error = zmq_getsockopt(socket, ZMQ_CONNECT_TIMEOUT, &ms, &len);
 		assert(error == 0);
 
@@ -243,7 +243,35 @@ namespace gdev {
 		assert(error == 0);
 
 		int nbytes = zmq_msg_recv(&message, socket, 0);
-		assert(nbytes != -1);
+		if (nbytes == -1) {
+			error = zmq_errno();
+			switch (error) {
+			case EAGAIN:
+				std::cerr << "EAGAIN";
+				break;
+			case ENOTSUP:
+				std::cerr << "ENOTSUP";
+				break;
+			case EFSM:
+				std::cerr << "EFSM";
+				break;
+			case ETERM:
+				std::cerr << "ETERM";
+				break;
+			case ENOTSOCK:
+				std::cerr << "ENOTSOCK";
+				break;
+			case EINTR:
+				std::cerr << "EINTR";
+				break;
+			case EFAULT:
+				std::cerr << "EFAULT";
+				break;
+			default:
+				break;
+			}
+			return false;
+		}
 
 		const char* data = (const char*)zmq_msg_data(&message);
 		assert(data != nullptr);

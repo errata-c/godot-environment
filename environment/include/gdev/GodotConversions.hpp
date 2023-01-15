@@ -28,7 +28,6 @@ namespace gdev {
 
 	// From c++ to Godot
 
-	// Take the Value and convert it to a godot::Variant.
 	godot::Variant to_variant(const gdev::ValueType& val);
 
 	godot::Variant to_variant(const gdev::range_t& val);
@@ -61,5 +60,8 @@ namespace gdev {
 	}
 
 	void serialize_space(const godot::Dictionary& value, std::string& buffer);
-	const char* deserialize_space(const char* buffer, const char* end, godot::Dictionary& value);
+	void serialize_step(const godot::Dictionary& observation, double reward, bool done, std::string& buffer);
+
+	const char* deserialize_space(const char* buffer, const char*const end, godot::Dictionary& value);
+	const char* deserialize_step(const char* buffer, const char*const end, godot::Dictionary& observation, double& reward, bool& done);
 }

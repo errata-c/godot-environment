@@ -91,18 +91,18 @@ namespace gdev {
 
 
 	
-	void serializeStep(const gdev::Space& observation, float reward, bool done, std::string& buffer) {
+	void serialize_step(const gdev::Space& observation, double reward, bool done, std::string& buffer) {
 		ez::serialize::u8(uint8_t(done), buffer);
-		ez::serialize::f32(reward, buffer);
+		ez::serialize::f64(reward, buffer);
 		serialize(observation, buffer);
 	}
 	
-	const char* deserializeStep(const char* buffer, const char* end, gdev::Space& observation, float& reward, bool& done) {
+	const char* deserialize_step(const char* buffer, const char* end, gdev::Space& observation, double& reward, bool& done) {
 		uint8_t donetmp;
 		buffer = ez::deserialize::u8(buffer, end, donetmp);
 		done = donetmp > 0;
 
-		buffer = ez::deserialize::f32(buffer, end, reward);
+		buffer = ez::deserialize::f64(buffer, end, reward);
 		return deserialize(buffer, end, observation);
 	}
 	

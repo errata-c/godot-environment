@@ -38,12 +38,12 @@ int main() {
 	};
 
 	std::mt19937 gen(std::random_device{}());
-	std::uniform_real_distribution<> dist(-1.f, 1.f);
+	std::uniform_real_distribution<> dist(-1.0, 1.0);
 	
-	// Using std::endl to flush the text manually, otherwise it doesn't always print until after the loop
 	std::cout << "\nBeginning the RL training loop" << std::endl;
 
 	// Run the main loop for the control
+
 	gdev::Step step = agent.reset();
 	std::cout << "Received the first step data from the environment" << std::endl;
 

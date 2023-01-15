@@ -9,13 +9,13 @@ namespace fs = std::filesystem;
 int main() {
 	// Dead simple test to see if the exec function will work.
 	fs::path godot = "godot";
-	fs::path scene = pendulum_exec_scene;
-	fs::path workingDir = pendulum_project_dir;
+	fs::path working_dir = pendulum_project_dir;
 
-	std::vector<std::string> args;
-	gdev::addSceneArgument(scene, args);
+	gdev::ExecArgs args;
+	args.scene_file = pendulum_exec_scene;
+	args.project_path = pendulum_project_dir;
 
-	if (!gdev::exec(godot, workingDir, args)) {
+	if (!gdev::exec(godot, working_dir, args)) {
 		std::cerr << "Failed to exec the scene file specified!\n";
 		return -1;
 	}

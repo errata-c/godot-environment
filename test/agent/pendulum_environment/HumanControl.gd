@@ -1,25 +1,20 @@
 extends Node
 
-export var reward = 0.0
-export var done = false
-
-var actions = {
-	"force": 0.0
-}
 var node
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	node = load("pendulum/Pendulum.tscn").instance()
-	add_child(node)
+	$Env.human_control = true
 	
-	node.reset(self)
+	$Pendulum.define_spaces($Env)
+	$Pendulum.reset($Env)
 
-func _physics_process(delta):
-	node.step(self)
-	$RewardLabel.text = "reward: %.2f" % reward
-	$DoneLabel.text = "done: {0}".format([done])
+func _process(delta):
+	$Pendulum.step($Env)
 	
+	$RewardLabel.text = "reward: %.2f" % $Env.reward
+	$DoneLabel.text = "done: {0}".format([$Env.done])
+	$VelocityLabel.text = "velocity: %.2f" % $Env.observation_space["angular_velocity"].get_flat(0)
 
 var leftHeld = false
 var rightHeld = false
@@ -40,12 +35,4 @@ func _input(event):
 	elif rightHeld:
 		force -= 1.0
 	
-	actions["force"] = force * 0.5
-
-func set_observation(name, value):
-	if name == "angular_velocity":
-		$VelocityLabel.text = "velocity: %.2f" % value
-		pass
-
-func get_action(name):
-	return actions[name]
+	$Env.action_space["force"].set_flat(0, force * 0.5)

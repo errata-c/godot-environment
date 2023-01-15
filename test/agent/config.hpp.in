@@ -2,4 +2,4 @@
 
 static constexpr char pendulum_project_dir[] = "@GDEV_PROJECT_DIR@";
 static constexpr char pendulum_exec_scene[] = "HumanControl.tscn";
-static constexpr char pendulum_environment_scene[] = "Setup.tscn";
+static constexpr char pendulum_environment_scene[] = "Main.tscn";
