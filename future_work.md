@@ -9,9 +9,9 @@
 - [ ] Allow the message context to connect to remote hosts as well? (`ZeroMQ` allows for this fairly easily)
 - [ ] Create static binding wrapper for the `Value` class
 - [ ] Create static binding wrapper for the `Space` class (More difficult, requires macros...)
-- [ ] Provide optional initialization parameter passing to the environment
+- [x] Provide optional initialization parameter passing to the environment
 - [x] Make dictionary in Godot for the `Space`
-- [ ] Make a `Value` wrapper in Godot
+- [x] Make a `Value` wrapper in Godot
   - [x] Provide constructors for making values in Godot?
   - [ ] Create reference class for subset of value (accepting dynamic iterator type to identify selection)
   - [ ] Method for accessing elements via Array of indices (if object is iterable)
